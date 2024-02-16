@@ -2,7 +2,7 @@
 #include "tw_faces/face_AppList.h"
 #include "fonts/RobotoMono_Light_All.h"
 #include "fonts/RobotoMono_Regular_All.h"
-
+#include "display.h"
 // Apps
 class tw_app;
 
@@ -127,7 +127,15 @@ bool FaceAppList::click(int16_t pos_x, int16_t pos_y)
 	return false;
 }
 
-bool FaceAppList::click_double(int16_t pos_x, int16_t pos_y) { return false; }
+bool FaceAppList::click_double(int16_t pos_x, int16_t pos_y) 
+{ 
+	if (current_app != nullptr)
+	{
+		bool was_clicked = (current_app->click_double(pos_x, pos_y));
+		return (was_clicked);
+	}
+	return false; 
+}
 
 bool FaceAppList::click_long(int16_t pos_x, int16_t pos_y)
 {

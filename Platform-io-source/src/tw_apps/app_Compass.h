@@ -12,8 +12,8 @@ class AppCompass : public tw_app
 		bool click(int16_t pos_x, int16_t pos_y);
 		bool click_double(int16_t pos_x, int16_t pos_y);
 
-		void drawCompass(int x, int y, int angle);
-		void getCoord(int x, int y, int *xp, int *yp, int r, int a);
+		void drawCompass(int x, int y, float angle);
+		void getCoord(int x, int y, int *xp, int *yp, int r, float a);
 
 	private:
 		String version = "1.0";

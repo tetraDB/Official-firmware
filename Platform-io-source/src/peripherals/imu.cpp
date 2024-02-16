@@ -367,6 +367,12 @@ float IMU::get_roll()
 }
 
 float IMU::get_yaw()
+{	
+	float cal[3] = {hard_iron[0], hard_iron[1], hard_iron[2] };
+	return get_yaw_calibrated(cal);
+}
+
+float IMU::get_yaw_calibrated(float calibration[3])
 {
 	if (!mag_ready)
 		return 0;
@@ -378,33 +384,31 @@ float IMU::get_yaw()
 	sensors_event_t event;
 	mag.getEvent(&event);
 
-	float Pi = 3.14159;
-
 	// Put raw magnetometer readings into an array
 	float mag_data[] = {event.magnetic.x, event.magnetic.y, event.magnetic.z};
 
 	// Apply hard-iron offsets
 	for (uint8_t i = 0; i < 3; i++)
 	{
-		hi_cal[i] = mag_data[i] - hard_iron[i];
+		hi_cal[i] = mag_data[i] - calibration[i];
 	}
 
 	// Apply soft-iron scaling
-	for (uint8_t i = 0; i < 3; i++)
-	{
-		mag_data[i] = (soft_iron[i][0] * hi_cal[0]) + (soft_iron[i][1] * hi_cal[1]) + (soft_iron[i][2] * hi_cal[2]);
-	}
+	//for (uint8_t i = 0; i < 3; i++)
+	//{
+	//	mag_data[i] = (soft_iron[i][0] * hi_cal[0]) + (soft_iron[i][1] * hi_cal[1]) + (soft_iron[i][2] * hi_cal[2]);
+	//}
 
 	// Non tilt compensated compass heading
-	heading = (atan2(mag_data[0], mag_data[1]) * 180) / Pi;
+	heading = (atan2(mag_data[0], mag_data[1]) * (float)180) / PI;
 
 	// Apply magnetic declination to convert magnetic heading
 	// to geographic heading
-	heading += mag_decl;
+	//heading += mag_decl;
 
 	// Normalize to 0-360
 	if (heading < 0)
-		heading = 360 + heading;
+		heading = (float)360 + heading;
 
 	return heading;
 }

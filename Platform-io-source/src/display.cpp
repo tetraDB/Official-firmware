@@ -55,6 +55,7 @@ Display display;
 #include "tw_apps/app_Microphone.h"
 #include "tw_apps/tw_app.h"
 #include "tw_apps/app_Empty.h"
+#include "tw_apps/app_Snake.h"
 
 // Other
 #include "bitmaps/bitmaps_general.h"
@@ -299,6 +300,7 @@ void Display::createFaces(bool was_sleeping)
 	// Create Applications
 	app_microphone.add("FFT", 25, 160);
 	app_compass.add("Compass", 100, 80);
+	app_snake.add("Snake", 50, 40);
 	app_empty.add("Empty", 1000, 40);
 
 	// Create Applications Face
@@ -306,6 +308,7 @@ void Display::createFaces(bool was_sleeping)
 	face_applist.set_single_navigation(LEFT, current_clock_face);
 	face_applist.add_app(&app_microphone);
 	face_applist.add_app(&app_compass);
+	face_applist.add_app(&app_snake);
 	face_applist.add_app(&app_empty);
 
 	// Create Faces

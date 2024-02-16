@@ -4,7 +4,7 @@
 #include "fonts/RobotoMono_Regular_All.h"
 #include "peripherals/imu.h"
 
-#define RAD2DEG 0.0174532925
+#define DEG2RAD 0.0174532925
 #define BACKGROUND TFT_BLACK
 
 void AppCompass::setup()
@@ -59,9 +59,22 @@ void AppCompass::draw(bool force)
 		setup();
 
 		next_update = millis();
-		angle = imu.get_yaw();
+		angle = (float)360 - imu.get_yaw();
+		switch(running_state)
+		{
+			case RUNNING_STATE_COMPAS:
+			{
+				drawCompass(120, 140, angle); // Draw centre of compass at 120,140
+				break;
+			}
 
-		drawCompass(120, 140, angle); // Draw centre of compass at 120,140
+			case RUNNING_STATE_CALIBRATE:
+			{
+				drawCalibrate();
+				break;
+			}
+		}
+		
 		canvas[canvasid].pushSprite(_x, _y);
 	}
 }
@@ -70,7 +83,7 @@ bool AppCompass::click(int16_t pos_x, int16_t pos_y) { return false; }
 
 bool AppCompass::click_double(int16_t pos_x, int16_t pos_y) { return false; }
 
-void AppCompass::drawCompass(int x, int y, int angle)
+void AppCompass::drawCompass(int x, int y, float angle)
 {
 	canvas[canvasid].setFreeFont(RobotoMono_Regular[12]);
 
@@ -78,8 +91,6 @@ void AppCompass::drawCompass(int x, int y, int angle)
 	// this allows it to be used in both 8 and 16 bit colour sprites.
 	canvas[canvasid].fillSprite(TFT_TRANSPARENT);
 
-#define NEEDLE_L 84 / 2 // Needle length is 84, we want radius which is 42
-#define NEEDLE_W 12 / 2 // Needle width is 12, radius is then 6
 
 	// Draw the old needle position in the screen background colour so
 	// it gets erased on the TFT when the sprite is drawn
@@ -89,18 +100,30 @@ void AppCompass::drawCompass(int x, int y, int angle)
 	// Set text coordinate datum to middle centre
 	canvas[canvasid].setTextDatum(MC_DATUM);
 	canvas[canvasid].setTextColor(TFT_WHITE);
-
-	canvas[canvasid].drawString("N", 120, 140 - 42, 2);
-	canvas[canvasid].drawString("E", 120 + 42, 140, 2);
-	canvas[canvasid].drawString("S", 120, 140 + 42, 2);
-	canvas[canvasid].drawString("W", 120 - 42, 140, 2);
+	
+	canvas[canvasid].drawString(String(angle), display.width / 2, 240);
 
 	canvas[canvasid].drawCircle(120, 140, 30, TFT_DARKGREY);
+
+	// This could be done more efficiently, one rotations calulation for each one, then scale it down for the needle
+	// but there's no need
+	getCoord(x, y, &lx1, &ly1, NESW_RADIUS, angle);
+	getCoord(x, y, &lx2, &ly2, NESW_RADIUS, angle + 180);
+	getCoord(x, y, &lx3, &ly3, NESW_RADIUS, angle + 90);
+	getCoord(x, y, &lx4, &ly4, NESW_RADIUS, angle - 90);
+
+	canvas[canvasid].setTextColor(TFT_RED);	
+	canvas[canvasid].drawString("N", lx1, ly1);	
+	canvas[canvasid].setTextColor(TFT_WHITE);
+	canvas[canvasid].drawString("E", lx3, ly3);
+	canvas[canvasid].setTextColor(TFT_DARKGREY);
+	canvas[canvasid].drawString("S", lx2, ly2);
+	canvas[canvasid].drawString("W", lx4, ly4);
 
 	getCoord(x, y, &lx1, &ly1, NEEDLE_L, angle);
 	getCoord(x, y, &lx2, &ly2, NEEDLE_L, angle + 180);
 	getCoord(x, y, &lx3, &ly3, NEEDLE_W, angle + 90);
-	getCoord(x, y, &lx4, &ly4, NEEDLE_W, angle - 90);
+	getCoord(x, y, &lx4, &ly4, NEEDLE_W, angle - 90);	
 
 	canvas[canvasid].fillTriangle(lx1, ly1, lx3, ly3, lx4, ly4, TFT_RED);
 	canvas[canvasid].fillTriangle(lx2, ly2, lx3, ly3, lx4, ly4, TFT_LIGHTGREY);
@@ -111,12 +134,19 @@ void AppCompass::drawCompass(int x, int y, int angle)
 
 // Get coordinates of end of a vector, centre at x,y, length r, angle a
 // Coordinates are returned to caller via the xp and yp pointers
-void AppCompass::getCoord(int x, int y, int *xp, int *yp, int r, int a)
+void AppCompass::getCoord(int x, int y, int *xp, int *yp, int r, float a)
 {
-	float sx1 = cos((a - 90) * RAD2DEG);
-	float sy1 = sin((a - 90) * RAD2DEG);
-	*xp = sx1 * r + x;
-	*yp = sy1 * r + y;
+	float rad = a * DEG2RAD;
+	float xc = cos(rad);
+	float xs = sin(rad);
+	float yc = r * cos(rad);
+	float ys = r * sin(rad);
+
+	float sx1 = xc - ys;
+	float sy1 = yc + xs;
+
+	*xp = sx1 + x;
+	*yp = sy1 + y;
 }
 
 AppCompass app_compass;
