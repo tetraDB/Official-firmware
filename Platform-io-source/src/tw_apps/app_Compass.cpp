@@ -55,7 +55,7 @@ void AppCompass::draw_icon(uint8_t canvasid, int16_t _pos_x, int16_t _pos_y, uin
 /**
  * 
  */
-bool AppCompass::click(uint16_t touch_pos_x, uint16_t touch_pos_y) { return false; }
+bool AppCompass::click(uint16_t touch_pos_x, uint16_t touch_pos_y)
 {
 	return false;
 }
@@ -63,7 +63,7 @@ bool AppCompass::click(uint16_t touch_pos_x, uint16_t touch_pos_y) { return fals
 /**
  * 
  */
-bool AppCompass::click_double(uint16_t touch_pos_x, uint16_t touch_pos_y) { return false; }
+bool AppCompass::click_double(uint16_t touch_pos_x, uint16_t touch_pos_y)
 {
 	has_calibrated = false;
 	running_state = RUNNING_STATE_CALIBRATE;
