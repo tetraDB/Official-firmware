@@ -4,6 +4,14 @@
 
 class AppCompass : public tw_app
 {
+	#define NEEDLE_L 84 / 2 // Needle length is 84, we want radius which is 42
+	#define NEEDLE_W 12 / 2 // Needle width is 12, radius is then 6
+	#define NESW_RADIUS 60 // radius that N E S W rotate around
+
+	// running states
+	#define RUNNING_STATE_COMPAS 1
+	#define RUNNING_STATE_CALIBRATE 2
+
 	public:
 		void setup(void);
 		void pre_start(void);
@@ -13,6 +21,7 @@ class AppCompass : public tw_app
 		bool click_double(uint16_t touch_pos_x, uint16_t touch_pos_y);
 
 		void drawCompass(int x, int y, float angle);
+		void drawCalibrate();
 		void getCoord(int x, int y, int *xp, int *yp, int r, float a);
 
 	private:
@@ -34,6 +43,9 @@ class AppCompass : public tw_app
 		// Test only
 		uint16_t n = 0;
 		uint32_t dt = 0;
+		
+		uint8_t running_state;
+		bool has_calibrated = false;
 };
 
 extern AppCompass app_compass;

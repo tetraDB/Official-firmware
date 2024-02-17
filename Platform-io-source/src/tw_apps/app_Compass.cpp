@@ -52,6 +52,27 @@ void AppCompass::draw_icon(uint8_t canvasid, int16_t _pos_x, int16_t _pos_y, uin
 	icon_sprite.pushToSprite(&canvas[canvasid], _pos_x, _pos_y);
 }
 
+/**
+ * 
+ */
+bool AppCompass::click(uint16_t touch_pos_x, uint16_t touch_pos_y) { return false; }
+{
+	return false;
+}
+
+/**
+ * 
+ */
+bool AppCompass::click_double(uint16_t touch_pos_x, uint16_t touch_pos_y) { return false; }
+{
+	has_calibrated = false;
+	running_state = RUNNING_STATE_CALIBRATE;
+	return false;
+}
+
+/**
+ * 
+ */
 void AppCompass::draw(bool force)
 {
 	if (force || millis() - next_update > update_period)
@@ -79,10 +100,9 @@ void AppCompass::draw(bool force)
 	}
 }
 
-bool AppCompass::click(uint16_t touch_pos_x, uint16_t touch_pos_y) { return false; }
-
-bool AppCompass::click_double(uint16_t touch_pos_x, uint16_t touch_pos_y) { return false; }
-
+/**
+ * 
+ */
 void AppCompass::drawCompass(int x, int y, float angle)
 {
 	canvas[canvasid].setFreeFont(RobotoMono_Regular[12]);
@@ -100,8 +120,9 @@ void AppCompass::drawCompass(int x, int y, float angle)
 	// Set text coordinate datum to middle centre
 	canvas[canvasid].setTextDatum(MC_DATUM);
 	canvas[canvasid].setTextColor(TFT_WHITE);
-
+	
 	canvas[canvasid].drawString(String(angle), display.width / 2, 240);
+
 	canvas[canvasid].drawCircle(120, 140, 30, TFT_DARKGREY);
 
 	// This could be done more efficiently, one rotations calulation for each one, then scale it down for the needle
@@ -131,8 +152,10 @@ void AppCompass::drawCompass(int x, int y, float angle)
 	canvas[canvasid].fillCircle(120, 140, 2, TFT_LIGHTGREY);
 }
 
-// Get coordinates of end of a vector, centre at x,y, length r, angle a
-// Coordinates are returned to caller via the xp and yp pointers
+/**
+ * Get coordinates of end of a vector, centre at x,y, length r, angle a
+ * Coordinates are returned to caller via the xp and yp pointers
+ */
 void AppCompass::getCoord(int x, int y, int *xp, int *yp, int r, float a)
 {
 	float rad = a * DEG2RAD;

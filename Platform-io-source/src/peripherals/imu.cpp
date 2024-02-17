@@ -378,7 +378,7 @@ float IMU::get_yaw_calibrated(float calibration[3])
 		return 0;
 
 	float hi_cal[3];
-	float heading = 0;
+	float heading = 0.0;
 
 	/* Get a new sensor event */
 	sensors_event_t event;
@@ -407,7 +407,7 @@ float IMU::get_yaw_calibrated(float calibration[3])
 	//heading += mag_decl;
 
 	// Normalize to 0-360
-	if (heading < 0)
+	if (heading < (float)0)
 		heading = (float)360 + heading;
 
 	return heading;

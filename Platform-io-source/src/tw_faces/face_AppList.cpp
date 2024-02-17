@@ -164,7 +164,7 @@ bool FaceAppList::click_double(uint16_t touch_pos_x, uint16_t touch_pos_y)
 { 
 	if (current_app != nullptr)
 	{
-		bool was_clicked = (current_app->click_double(pos_x, pos_y));
+		bool was_clicked = (current_app->click_double(touch_pos_x, touch_pos_y));
 		return (was_clicked);
 	}
 	return false; 
