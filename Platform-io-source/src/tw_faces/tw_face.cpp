@@ -1,7 +1,7 @@
 /**
  * @file tw_face.cpp
- * @details The `tw_face` class represents a face on the TinyWatch and includes methods for handling touch events, dragging, and managing controls on the face. 
- * 
+ * @details The `tw_face` class represents a face on the TinyWatch and includes methods for handling touch events, dragging, and managing controls on the face.
+ *
  */
 
 #include "tw_faces/tw_face.h"
@@ -70,47 +70,35 @@ bool tw_face::is_face_clock_face() { return is_clock_face; }
 void tw_face::reset_can_swipe_flags()
 {
 	for (int i = 0; i < 4; i++)
-		can_swipe_dir[i] = false;
+		can_drag_dir[i] = false;
 }
 
 uint32_t tw_face::get_cpu_speed() { return (required_cpu_speed); }
 
-int tw_face::check_can_swipe()
+int tw_face::check_can_drag_in_dir()
 {
 	for (int i = 0; i < 4; i++)
 	{
-		if (can_swipe_dir[i])
+		if (can_drag_dir[i])
 			return i;
 	}
 
 	return -1;
-
-	/*
-		if (can_swipe_dir[0])
-		return 0;
-	else if (can_swipe_dir[2])
-		return 0;
-	else if (can_swipe_dir[1])
-		return 3;
-	else if (can_swipe_dir[3])
-		return 1;
-	else
-		return -1;*/
 }
 
 /**
  * @brief Searches through all of the controls added to the face to see if any are "draggable" and if so
  * returns the control
  *
- * @param click_pos_x
- * @param click_pos_y
+ * @param touch_pos_x
+ * @param touch_pos_y
  * @return tw_control*
  */
-tw_control *tw_face::find_draggable_control(int16_t click_pos_x, int16_t click_pos_y)
+tw_control *tw_face::find_draggable_control(uint16_t touch_pos_x, uint16_t touch_pos_y)
 {
 	for (int w = 0; w < controls.size(); w++)
 	{
-		if (controls[w]->can_drag(click_pos_x, click_pos_y))
+		if (controls[w]->can_drag(touch_pos_x, touch_pos_y))
 			return controls[w];
 	}
 	return nullptr;
@@ -121,7 +109,18 @@ tw_control *tw_face::find_draggable_control(int16_t click_pos_x, int16_t click_p
  *
  * @param state
  */
-void tw_face::prevent_dragging(bool state) { block_dragging = state; }
+void tw_face::prevent_dragging(bool state)
+{
+	block_dragging = state;
+	info_printf("blocked dragging: %d for %s\n", block_dragging, name);
+}
+
+/**
+ * @brief Return if the face is being blocked from dragging.
+ *
+ * @return bool
+ */
+bool tw_face::is_drag_blocked() { return block_dragging; }
 
 /**
  * @brief Called on the face to notify it there was a finger down event on the face
@@ -238,15 +237,15 @@ void tw_face::drag(int16_t drag_x, int16_t drag_y, int16_t pos_x, int16_t pos_y,
 		{
 			// pre calc if am able to swipe based on where I start my touch
 			if (drag_start_x < drag_width && abs(drag_x) > abs(drag_y)) // swipe right, drag in from left if face exists
-				can_swipe_dir[3] = (navigation[3] != nullptr);
+				can_drag_dir[3] = (navigation[3] != nullptr);
 			else if (drag_start_x > 240 - drag_width && abs(drag_x) > abs(drag_y)) // swipe left, drag in from right if face exists
-				can_swipe_dir[1] = (navigation[1] != nullptr);
+				can_drag_dir[1] = (navigation[1] != nullptr);
 			else if (drag_start_y < drag_width && abs(drag_x) < abs(drag_y)) // swipe down, drag in from top if face exists
-				can_swipe_dir[2] = (navigation[2] != nullptr);
+				can_drag_dir[2] = (navigation[2] != nullptr);
 			else if (drag_start_y > 280 - drag_width && abs(drag_x) < abs(drag_y)) // swipe up, drag in from bottom if face exists
-				can_swipe_dir[0] = (navigation[0] != nullptr);
+				can_drag_dir[0] = (navigation[0] != nullptr);
 
-			drag_dir = check_can_swipe();
+			drag_dir = check_can_drag_in_dir();
 
 			drag_lock_y = (drag_dir == 0 || drag_dir == 2);
 			drag_lock_x = (drag_dir == 1 || drag_dir == 3);
@@ -532,11 +531,11 @@ void tw_face::add_widget(tw_widget *widget)
 	}
 }
 
-bool tw_face::widget_process_clicks(int16_t click_pos_x, int16_t click_pos_y)
+bool tw_face::widget_process_clicks(uint16_t touch_pos_x, uint16_t touch_pos_y)
 {
 	for (int w = 0; w < widgets.size(); w++)
 	{
-		if (widgets[w]->click(click_pos_x, click_pos_y))
+		if (widgets[w]->click(touch_pos_x, touch_pos_y))
 		{
 			next_update = 0;
 			return true;
@@ -555,11 +554,11 @@ void tw_face::add_control(tw_control *control)
 	}
 }
 
-bool tw_face::control_process_clicks(int16_t click_pos_x, int16_t click_pos_y)
+bool tw_face::control_process_clicks(uint16_t touch_pos_x, uint16_t touch_pos_y)
 {
 	for (int w = 0; w < controls.size(); w++)
 	{
-		if (controls[w]->click(click_pos_x, click_pos_y))
+		if (controls[w]->click(touch_pos_x, touch_pos_y))
 		{
 			next_update = 0;
 			return true;

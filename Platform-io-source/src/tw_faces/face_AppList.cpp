@@ -8,6 +8,11 @@ class tw_app;
 
 static std::map<String, tw_app *> app_icons;
 
+float naive_lerp(float a, float b, float t)
+{
+	return a + t * (b - a);
+}
+
 // Called when face is set to current
 void FaceAppList::setup()
 {
@@ -20,11 +25,11 @@ void FaceAppList::setup()
 
 void FaceAppList::add_app(tw_app *app) { app_icons[app->name] = app; }
 
-bool FaceAppList::icon_process_clicks(int16_t click_pos_x, int16_t click_pos_y)
+bool FaceAppList::icon_process_clicks(uint16_t touch_pos_x, uint16_t touch_pos_y)
 {
 	for (auto _app : app_icons)
 	{
-		if (_app.second->click_icon(click_pos_x, click_pos_y))
+		if (_app.second->click_icon(touch_pos_x, touch_pos_y))
 		{
 			current_app = _app.second;
 			current_app->pre_start();
@@ -45,16 +50,33 @@ bool FaceAppList::icon_process_clicks(int16_t click_pos_x, int16_t click_pos_y)
  */
 bool FaceAppList::animate_app_in()
 {
-	// uint16_t _width = 120;
-	// uint16_t _height = 140;
+	is_animating = true;
+	float step = 0.0;
 
-	// while (_width < 120)
-	// {
-	//     canvas[1].setWindow(_width, _height, 240-_width, 280-_height);
-	//     current_app->set_canvas(1);
-	//     current_app->draw(force);
-	//     canvas[1]
-	// }
+	// grab the selected icon ps and size so we can animate it
+	current_app->get_icon_pos(anim_icon_pos_x, anim_icon_pos_y, anim_icon_width, anim_icon_height);
+
+	anim_backlight = display.get_current_backlight_val();
+
+	while (step < 1.0)
+	{
+
+		step = constrain(step + 0.2, 0.0, 1.0);
+		anim_icon_height = (uint16_t)naive_lerp((float)anim_icon_height, 279.0, step);
+		anim_icon_width = (uint16_t)naive_lerp((float)anim_icon_width, 239.0, step);
+		anim_icon_pos_x = (uint16_t)naive_lerp((float)anim_icon_pos_x, 0.0, step);
+		anim_icon_pos_y = (uint16_t)naive_lerp((float)anim_icon_pos_y, 0.0, step);
+		anim_corner_roundness = (uint8_t)naive_lerp((float)anim_corner_roundness, 45.0, step);
+		anim_backlight = (uint8_t)naive_lerp((float)anim_backlight, 0.0, step);
+
+		draw(true);
+
+		display.set_backlight_val_direct(anim_backlight);
+	}
+	yield;
+	is_animating = false;
+	// draw(true);
+
 	return false;
 }
 
@@ -66,9 +88,13 @@ bool FaceAppList::animate_app_in()
 void FaceAppList::draw(bool force)
 {
 	// If we have launched an app, it becomes the thing we see, any messaging to the AppList Face goes to the app
-	if (current_app != nullptr)
+	// So long as we are not currently animating the app in or out
+	if (!is_animating && current_app != nullptr)
 	{
 		current_app->draw(force);
+
+		if (display.get_current_backlight_val() == 0)
+			display.set_backlight(0, true);
 		return;
 	}
 
@@ -106,28 +132,35 @@ void FaceAppList::draw(bool force)
 			}
 		}
 
+		if (is_animating)
+		{
+			canvas[canvasid].fillRoundRect(anim_icon_pos_x, anim_icon_pos_y, anim_icon_width, anim_icon_height, anim_corner_roundness, 0);
+			canvas[canvasid].drawRoundRect(anim_icon_pos_x, anim_icon_pos_y, anim_icon_width, anim_icon_height, anim_corner_roundness, TFT_WHITE);
+		}
+
 		canvas[canvasid].pushSprite(_x, _y);
 	}
 }
 
-bool FaceAppList::click(int16_t pos_x, int16_t pos_y)
+bool FaceAppList::click(uint16_t touch_pos_x, uint16_t touch_pos_y)
 {
 	if (current_app != nullptr)
 	{
 
-		bool was_clicked = (current_app->click(pos_x, pos_y));
+		bool was_clicked = (current_app->click(touch_pos_x, touch_pos_y));
 		// info_printf("Clicked app %s result %d\n",current_app->name, was_clicked);
 		return (was_clicked);
 	}
 
-	if (icon_process_clicks(pos_x, pos_y))
+	if (icon_process_clicks(touch_pos_x, touch_pos_y))
 	{
+		animate_app_in();
 		return true;
 	}
 	return false;
 }
 
-bool FaceAppList::click_double(int16_t pos_x, int16_t pos_y) 
+bool FaceAppList::click_double(uint16_t touch_pos_x, uint16_t touch_pos_y) 
 { 
 	if (current_app != nullptr)
 	{
@@ -137,13 +170,38 @@ bool FaceAppList::click_double(int16_t pos_x, int16_t pos_y)
 	return false; 
 }
 
-bool FaceAppList::click_long(int16_t pos_x, int16_t pos_y)
+bool FaceAppList::click_long(uint16_t touch_pos_x, uint16_t touch_pos_y)
 {
 	if (current_app != nullptr)
 	{
+		display.set_backlight_val_direct(0);
 		BuzzerUI({{2000, 400}});
+		while (display.get_current_backlight_val() > 0)
+			yield;
+
 		close_app();
 		return true;
+	}
+	return false;
+}
+
+/**
+ * @brief Capture swipe notification to pass on to an app
+ *
+ * @param touch_pos_x Swipe start touch X pos
+ * @param touch_pos_y Swipe start touch X pos
+ * @param swipe_dir Swipe direction
+ * @param dist_x Signed swipe X distance
+ * @param dist_y Signed swipe Y distance
+ * @return true
+ * @return false
+ */
+bool FaceAppList::swipe(uint16_t touch_pos_x, uint16_t touch_pos_y, int8_t swipe_dir, int16_t dist_x, int16_t dist_y)
+{
+	if (current_app != nullptr)
+	{
+		if (current_app->swipe(touch_pos_x, touch_pos_y, swipe_dir, dist_x, dist_y))
+			return true;
 	}
 	return false;
 }
@@ -154,6 +212,7 @@ void FaceAppList::close_app()
 	prevent_dragging(false);
 	reset_cache_status();
 	draw(true);
+	display.set_backlight(0, true);
 }
 
 FaceAppList face_applist;

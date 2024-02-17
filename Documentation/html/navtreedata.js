@@ -26,18 +26,10 @@ var NAVTREE =
 [
   [ "TinyWATCH S3", "index.html", [
     [ "Welcome", "index.html", "index" ],
-    [ "Overview", "md__2_users_2seon_2_dropbox_2_unexpected_01_maker_2_repositories_2tinywatchs3-org_2_official-fir68989a01c190abd1f2e3ba74e11948a4.html", [
-      [ "Contents", "md__2_users_2seon_2_dropbox_2_unexpected_01_maker_2_repositories_2tinywatchs3-org_2_official-fir68989a01c190abd1f2e3ba74e11948a4.html#autotoc_md1", [
-        [ "Faces", "md__2_users_2seon_2_dropbox_2_unexpected_01_maker_2_repositories_2tinywatchs3-org_2_official-fir68989a01c190abd1f2e3ba74e11948a4.html#autotoc_md2", null ],
-        [ "Widgets", "md__2_users_2seon_2_dropbox_2_unexpected_01_maker_2_repositories_2tinywatchs3-org_2_official-fir68989a01c190abd1f2e3ba74e11948a4.html#autotoc_md3", null ],
-        [ "Controls", "md__2_users_2seon_2_dropbox_2_unexpected_01_maker_2_repositories_2tinywatchs3-org_2_official-fir68989a01c190abd1f2e3ba74e11948a4.html#autotoc_md4", null ],
-        [ "Peripherals", "md__2_users_2seon_2_dropbox_2_unexpected_01_maker_2_repositories_2tinywatchs3-org_2_official-fir68989a01c190abd1f2e3ba74e11948a4.html#autotoc_md5", null ],
-        [ "WiFi", "md__2_users_2seon_2_dropbox_2_unexpected_01_maker_2_repositories_2tinywatchs3-org_2_official-fir68989a01c190abd1f2e3ba74e11948a4.html#autotoc_md6", null ],
-        [ "User Settings", "md__2_users_2seon_2_dropbox_2_unexpected_01_maker_2_repositories_2tinywatchs3-org_2_official-fir68989a01c190abd1f2e3ba74e11948a4.html#autotoc_md7", null ]
-      ] ],
-      [ "Coding Style", "md__2_users_2seon_2_dropbox_2_unexpected_01_maker_2_repositories_2tinywatchs3-org_2_official-fir68989a01c190abd1f2e3ba74e11948a4.html#autotoc_md8", null ],
-      [ "Open Source License", "md__2_users_2seon_2_dropbox_2_unexpected_01_maker_2_repositories_2tinywatchs3-org_2_official-fir68989a01c190abd1f2e3ba74e11948a4.html#autotoc_md9", null ],
-      [ "Getting Started", "md__2_users_2seon_2_dropbox_2_unexpected_01_maker_2_repositories_2tinywatchs3-org_2_official-fir68989a01c190abd1f2e3ba74e11948a4.html#autotoc_md10", null ]
+    [ "Code Structure & Concepts", "md__2_users_2seon_2_dropbox_2_unexpected_01_maker_2_repositories_2tinywatchs3-org_2_official-fir68989a01c190abd1f2e3ba74e11948a4.html", [
+      [ "Coding Style", "md__2_users_2seon_2_dropbox_2_unexpected_01_maker_2_repositories_2tinywatchs3-org_2_official-fir68989a01c190abd1f2e3ba74e11948a4.html#autotoc_md7", null ],
+      [ "Open Source License", "md__2_users_2seon_2_dropbox_2_unexpected_01_maker_2_repositories_2tinywatchs3-org_2_official-fir68989a01c190abd1f2e3ba74e11948a4.html#autotoc_md8", null ],
+      [ "Getting Started", "md__2_users_2seon_2_dropbox_2_unexpected_01_maker_2_repositories_2tinywatchs3-org_2_official-fir68989a01c190abd1f2e3ba74e11948a4.html#autotoc_md9", null ]
     ] ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
@@ -69,11 +61,11 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "_clock___digits_8h.html",
-"class_display.html#a854fd1d6738d9ddebce9381466057afd",
-"class_settings.html#aa42da92c05be487651de3a57ba3a53b0",
-"classtw__face.html#a3f5fefe28b97beb02e0cd30782580778",
-"functions_vars_m.html",
-"wifi__setup__templates_8h.html"
+"class_display.html#a806acc6b576d79de9acfaabcd4ef2da7",
+"class_settings.html#a1207215c27f2d0beb3b23115e0001463",
+"classtw__face.html#a1473b4ffe942ac8fc7351679f1a07908",
+"functions_type.html",
+"wifi__controller_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

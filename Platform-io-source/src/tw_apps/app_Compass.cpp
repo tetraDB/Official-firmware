@@ -79,9 +79,9 @@ void AppCompass::draw(bool force)
 	}
 }
 
-bool AppCompass::click(int16_t pos_x, int16_t pos_y) { return false; }
+bool AppCompass::click(uint16_t touch_pos_x, uint16_t touch_pos_y) { return false; }
 
-bool AppCompass::click_double(int16_t pos_x, int16_t pos_y) { return false; }
+bool AppCompass::click_double(uint16_t touch_pos_x, uint16_t touch_pos_y) { return false; }
 
 void AppCompass::drawCompass(int x, int y, float angle)
 {
@@ -100,9 +100,8 @@ void AppCompass::drawCompass(int x, int y, float angle)
 	// Set text coordinate datum to middle centre
 	canvas[canvasid].setTextDatum(MC_DATUM);
 	canvas[canvasid].setTextColor(TFT_WHITE);
-	
-	canvas[canvasid].drawString(String(angle), display.width / 2, 240);
 
+	canvas[canvasid].drawString(String(angle), display.width / 2, 240);
 	canvas[canvasid].drawCircle(120, 140, 30, TFT_DARKGREY);
 
 	// This could be done more efficiently, one rotations calulation for each one, then scale it down for the needle

@@ -95,12 +95,12 @@ void AppEmpty::draw(bool force)
 /**
  * @brief Did we click on the app? If so, where?
  *
- * @param click_pos_x
- * @param click_pos_y
+ * @param touch_pos_x
+ * @param touch_pos_y
  * @return true
  * @return false
  */
-bool AppEmpty::click(uint16_t click_pos_x, uint16_t click_pos_y)
+bool AppEmpty::click(uint16_t touch_pos_x, uint16_t touch_pos_y)
 {
 
 	return false;
@@ -109,12 +109,23 @@ bool AppEmpty::click(uint16_t click_pos_x, uint16_t click_pos_y)
 /**
  * @brief Did we double click on the app? If so, where?
  *
- * @param click_pos_x
- * @param click_pos_y
+ * @param touch_pos_x
+ * @param touch_pos_y
  * @return true
  * @return false
  */
 
-bool AppEmpty::click_double(uint16_t click_pos_x, uint16_t click_pos_y) { return false; }
+bool AppEmpty::click_double(uint16_t touch_pos_x, uint16_t touch_pos_y) { return false; }
+
+bool AppEmpty::swipe(uint16_t touch_pos_x, uint16_t touch_pos_y, int8_t swipe_dir, int16_t dist_x, int16_t dist_y)
+{
+	String swipe_dir_names[4] = {"UP", "RIGHT", "DOWN", "LEFT"};
+	info_printf("swipe dir: %s at touch pos (%d,%d) distance: (%d,%d)\n", swipe_dir_names[swipe_dir], touch_pos_x, touch_pos_y, dist_x, dist_y);
+
+	return true;
+}
+
+		
+
 
 AppEmpty app_empty;

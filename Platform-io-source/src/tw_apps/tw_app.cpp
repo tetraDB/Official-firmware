@@ -72,19 +72,27 @@ void tw_app::close(bool save)
 	face_applist.close_app();
 }
 
+void tw_app::get_icon_pos(uint16_t &_icon_x, uint16_t &_icon_y, uint16_t &_icon_width, uint16_t &_icon_height)
+{
+	_icon_x = icon_x;
+	_icon_y = icon_y;
+	_icon_width = icon_width;
+	_icon_height = icon_height;
+}
+
 /**
  * @brief Check if we have clicked on an app icon
  *
  * Needs to have better bounds checking with padding.
  *
- * @param click_pos_x
- * @param click_pos_y
+ * @param touch_pos_x
+ * @param touch_pos_y
  * @return true
  * @return false
  */
-bool tw_app::click_icon(int16_t click_pos_x, int16_t click_pos_y)
+bool tw_app::click_icon(uint16_t touch_pos_x, uint16_t touch_pos_y)
 {
-	if ((click_pos_x >= icon_x && click_pos_x <= icon_x + icon_width) && (click_pos_y >= icon_y && click_pos_y <= icon_y + icon_height))
+	if ((touch_pos_x >= icon_x && touch_pos_x <= icon_x + icon_width) && (touch_pos_y >= icon_y && touch_pos_y <= icon_y + icon_height))
 		return true;
 
 	return false;
