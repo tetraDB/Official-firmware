@@ -1,6 +1,8 @@
 #pragma once
 
 #include "tw_apps/tw_app.h"
+#include "utilities/vector3D.h"
+#include "utilities/rotationMatrix.h"
 
 class AppCompass : public tw_app
 {
@@ -54,6 +56,19 @@ class AppCompass : public tw_app
 		float hard_iron_avg[3];
 		float hard_iron_min[3];
 		float hard_iron_max[3];
+
+		float rotation[3];
+
+		Vector3D square[8] = {
+			Vector3D { -50,  50, -50}, Vector3D {  50,  50, -50},
+			Vector3D { -50,  50,  50}, Vector3D {  50,  50,  50},
+			Vector3D { -50, -50, -50}, Vector3D {  50, -50, -50},
+			Vector3D { -50, -50,  50}, Vector3D {  50, -50,  50}		
+		};
+
+		Vector3D rotated_square[8];
+
+		RotationMatrix rotation_matrix;
 };
 
 extern AppCompass app_compass;

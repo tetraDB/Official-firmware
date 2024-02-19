@@ -96,6 +96,7 @@ void AppCompass::draw(bool force)
 		setup();
 		next_update = millis();
 
+		imu.update();
 		heading = moveTowardsHeading(heading, imu.get_yaw());
 
 		switch(running_state)
@@ -310,6 +311,102 @@ void AppCompass::drawCompass(int x, int y, float angle)
 	canvas[canvasid].fillTriangle(needle_S_x, needle_S_y, needle_E_x, needle_E_y, needle_W_x, needle_W_y, TFT_LIGHTGREY);
 
 	canvas[canvasid].fillSmoothCircle(120, 140, 3, TFT_DARKGREY, TFT_LIGHTGREY);
+	
+	//rotation[0] += 0.2;
+	//rotation[1] += 0.6;
+	//rotation[2] += 1.2;
+	
+	rotation[0] = 180 + imu.get_pitch();
+	rotation[1] = 180 + imu.get_roll();
+	//rotation[2] = imu.get_yaw();
+
+	//if (rotation[0] < 360.0) rotation[0] -= 360;
+	//if (rotation[1] < 360.0) rotation[1] -= 360;
+	//if (rotation[2] < 360.0) rotation[2] -= 360;
+
+	rotation_matrix.updateRotationMatrix( rotation[0], rotation[1], rotation[2] );
+	rotated_square[0] = rotation_matrix * square[0];
+	rotated_square[1] = rotation_matrix * square[1];
+	rotated_square[2] = rotation_matrix * square[2];
+	rotated_square[3] = rotation_matrix * square[3];
+	rotated_square[4] = rotation_matrix * square[4];
+	rotated_square[5] = rotation_matrix * square[5];
+	rotated_square[6] = rotation_matrix * square[6];
+	rotated_square[7] = rotation_matrix * square[7];
+	
+
+	float s = 120.0;
+	float scale_0 = s / (rotated_square[0].z + s);
+	float scale_1 = s / (rotated_square[1].z + s);
+	float scale_2 = s / (rotated_square[2].z + s);
+	float scale_3 = s / (rotated_square[3].z + s);
+
+	float scale_4 = s / (rotated_square[4].z + s);
+	float scale_5 = s / (rotated_square[5].z + s);
+	float scale_6 = s / (rotated_square[6].z + s);
+	float scale_7 = s / (rotated_square[7].z + s);
+
+	canvas[canvasid].fillTriangle(
+		x + rotated_square[0].x * scale_0, 
+		y + rotated_square[0].y * scale_0, 
+		x + rotated_square[1].x * scale_1,
+		y + rotated_square[1].y * scale_1, 
+		x + rotated_square[3].x * scale_3,
+		y + rotated_square[3].y * scale_3,
+		TFT_RED
+	);
+	canvas[canvasid].fillTriangle(
+		x + rotated_square[0].x * scale_0,
+		y + rotated_square[0].y * scale_0,
+		x + rotated_square[3].x * scale_3,
+		y + rotated_square[3].y * scale_3,
+		x + rotated_square[2].x * scale_2,
+		y + rotated_square[2].y * scale_2,
+		TFT_PURPLE
+	);
+	
+	
+	canvas[canvasid].fillTriangle(
+		x + rotated_square[2].x * scale_2,
+		y + rotated_square[2].y * scale_2,
+		x + rotated_square[3].x * scale_3,
+		y + rotated_square[3].y * scale_3,
+		x + rotated_square[6].x * scale_6,
+		y + rotated_square[6].y * scale_6,
+		TFT_GREEN
+	);
+
+	canvas[canvasid].fillTriangle(
+		x + rotated_square[3].x * scale_3,
+		y + rotated_square[3].y * scale_3,
+		x + rotated_square[6].x * scale_6,
+		y + rotated_square[6].y * scale_6,
+		x + rotated_square[7].x * scale_7,
+		y + rotated_square[7].y * scale_7,
+		TFT_MAGENTA
+	);
+
+	canvas[canvasid].fillTriangle(
+		x + rotated_square[4].x * scale_4,
+		y + rotated_square[4].y * scale_4, 
+		x + rotated_square[5].x * scale_5, 
+		y + rotated_square[5].y * scale_5, 
+		x + rotated_square[6].x * scale_6, 
+		y + rotated_square[6].y * scale_6,
+		TFT_BLUE
+	);
+	canvas[canvasid].fillTriangle(
+		x + rotated_square[5].x * scale_5,
+		y + rotated_square[5].y * scale_5,
+		x + rotated_square[6].x * scale_6,
+		y + rotated_square[6].y * scale_6,
+		x + rotated_square[7].x * scale_7,
+		y + rotated_square[7].y * scale_7,
+		TFT_ORANGE
+	);
+
+	
+	canvas[canvasid].drawString(String(rotation[0], 2) + "," + String(rotation[1], 2) + "," + String(rotation[2], 2), display.width / 2, 260);
 }
 
 AppCompass app_compass;
