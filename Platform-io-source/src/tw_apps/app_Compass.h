@@ -26,7 +26,6 @@ class AppCompass : public tw_app
 		#define RUNNING_STATE_CALIBRATE 2
 		
 		float heading = 0;
-		float align_rate = 0.66; // rate at which the needle follows the imu
 		uint8_t running_state;
 
 		uint8_t needle_N_x = 0;
@@ -46,16 +45,30 @@ class AppCompass : public tw_app
 		uint8_t text_S_y = 0;
 		uint8_t text_W_x = 0;
 		uint8_t text_W_y = 0;
+		
+		//these are needed for calibration
+
+		float mag_x_min;
+		float mag_y_min;
+		float mag_z_min;
+
+		float mag_x_max;
+		float mag_y_max;
+		float mag_z_max;
+		
+		float hard_iron_x;
+		float hard_iron_y;
+		float hard_iron_z;
+
+		float soft_iron_x;
+		float soft_iron_y;
+		float soft_iron_z;
+				
 
 		float moveTowardsHeading(float currentHeading, float newHeading);
 		void drawCompass(int x, int y, float angle);
 		void drawCalibrate();
 		void resetCalibration();
-
-		// hard iron calibration
-		float hard_iron_avg[3];
-		float hard_iron_min[3];
-		float hard_iron_max[3];
 
 		float rotation[3];
 
@@ -69,6 +82,7 @@ class AppCompass : public tw_app
 		Vector3D rotated_square[8];
 
 		RotationMatrix rotation_matrix;
+
 };
 
 extern AppCompass app_compass;
