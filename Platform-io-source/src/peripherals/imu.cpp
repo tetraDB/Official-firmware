@@ -427,7 +427,7 @@ float IMU::get_yaw()
 	return heading;
 }
 
-void IMU::get_magnetic(float *x, float *y, float *z)
+void IMU::get_magnetic(float *x, float *y, float *z, bool compensated)
 {
 	if (mag_ready)
 	{
@@ -443,6 +443,19 @@ void IMU::get_magnetic(float *x, float *y, float *z)
 		*x = 0;
 		*y = 0;
 		*z = 0;
+	}
+
+	if (compensated)
+	{
+		// Apply hard-iron calibration
+		*x -= settings.config.compass.hard_iron_x;
+		*y -= settings.config.compass.hard_iron_y;
+		*z -= settings.config.compass.hard_iron_z;
+		
+		// Apply soft-iron 
+		*x *= settings.config.compass.soft_iron_x;
+		*y *= settings.config.compass.soft_iron_y;
+		*z *= settings.config.compass.soft_iron_z;
 	}
 }
 

@@ -114,7 +114,7 @@ void FaceAppList::draw(bool force)
 			canvas[canvasid].setFreeFont(RobotoMono_Regular[15]);
 			canvas[canvasid].setTextColor(TFT_GREEN);
 
-			int8_t icon_spacing = 9;
+			int8_t icon_spacing = 9; // for even spacing this should be 12, but if theres a scroll bar on the right then 9 makes more sense
 
 			int16_t icon_x = icon_spacing;
 			int16_t icon_y = icon_spacing;

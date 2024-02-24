@@ -1,8 +1,6 @@
 #pragma once
 
 #include "tw_apps/tw_app.h"
-#include "utilities/vector3D.h"
-#include "utilities/rotationMatrix.h"
 
 class AppCompass : public tw_app
 {
@@ -62,27 +60,11 @@ class AppCompass : public tw_app
 
 		float soft_iron_x;
 		float soft_iron_y;
-		float soft_iron_z;
-				
+		float soft_iron_z;				
 
-		float moveTowardsHeading(float currentHeading, float newHeading);
 		void drawCompass(int x, int y, float angle);
 		void drawCalibrate();
 		void resetCalibration();
-
-		float rotation[3];
-
-		Vector3D square[8] = {
-			Vector3D { -50,  50, -50}, Vector3D {  50,  50, -50},
-			Vector3D { -50,  50,  50}, Vector3D {  50,  50,  50},
-			Vector3D { -50, -50, -50}, Vector3D {  50, -50, -50},
-			Vector3D { -50, -50,  50}, Vector3D {  50, -50,  50}		
-		};
-
-		Vector3D rotated_square[8];
-
-		RotationMatrix rotation_matrix;
-
 };
 
 extern AppCompass app_compass;
