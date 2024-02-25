@@ -384,14 +384,14 @@ void IMU::get_magnetic(float *x, float *y, float *z, bool iron_compensated)
 		*z = 0;
 	}
 
-	if (compensated)
+	if (iron_compensated)
 	{
 		// Apply hard-iron calibration
 		*x -= settings.config.compass.hard_iron_x;
 		*y -= settings.config.compass.hard_iron_y;
 		*z -= settings.config.compass.hard_iron_z;
 		
-		// Apply soft-iron 
+		// Apply soft-iron calibration
 		*x *= settings.config.compass.soft_iron_x;
 		*y *= settings.config.compass.soft_iron_y;
 		*z *= settings.config.compass.soft_iron_z;
@@ -421,11 +421,11 @@ float IMU::get_yaw(bool tilt_compensated)
 		float tilt_correct_x = mag_x * cos(mag_pitch) + mag_y * sin(mag_roll) * sin(mag_pitch) - mag_z * cos(mag_roll) * sin(mag_pitch);
 		float tilt_correct_y = mag_y * cos(mag_roll) + mag_z * sin(mag_roll);
 
-		heading = atan2f(tilt_correct_x, tilt_correct_y) * RAD_TO_DEG;
+		heading = atan2(tilt_correct_x, tilt_correct_y) * RAD_TO_DEG;
 	}
 	else
 	{
-		heading = atan2f(mag_x, mag_y) * RAD_TO_DEG;
+		heading = atan2(mag_x, mag_y) * RAD_TO_DEG;
 	}	
 
 	// Apply magnetic declination to convert magnetic heading
