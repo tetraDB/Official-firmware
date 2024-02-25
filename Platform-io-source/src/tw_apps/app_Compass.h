@@ -43,7 +43,11 @@ class AppCompass : public tw_app
 		uint8_t text_S_y = 0;
 		uint8_t text_W_x = 0;
 		uint8_t text_W_y = 0;
-		
+
+		void drawCompass();
+		void drawCalibrate();
+		void resetCalibration();
+
 		//these are needed for calibration
 
 		float mag_x_min;
@@ -60,11 +64,7 @@ class AppCompass : public tw_app
 
 		float soft_iron_x;
 		float soft_iron_y;
-		float soft_iron_z;				
-
-		void drawCompass(int x, int y, float angle);
-		void drawCalibrate();
-		void resetCalibration();
+		float soft_iron_z;
 };
 
 extern AppCompass app_compass;
