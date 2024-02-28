@@ -23,27 +23,14 @@ class AppCompass : public tw_app
 		#define RUNNING_STATE_DRAW 1
 		#define RUNNING_STATE_CALIBRATE 2
 		
+		#define B_BLUE RGB(10, 40, 60)
+		#define B_RED RGB(40, 20, 20)
+		#define B_GREEN RGB(20, 40, 20)
+
 		float heading = 0;
 		uint8_t running_state;
 
-		uint8_t needle_N_x = 0;
-		uint8_t needle_N_y = 0;
-		uint8_t needle_E_x = 0;
-		uint8_t needle_E_y = 0;
-		uint8_t needle_S_x = 0;
-		uint8_t needle_S_y = 0;
-		uint8_t needle_W_x = 0;
-		uint8_t needle_W_y = 0;
-
-		uint8_t text_N_x = 0;
-		uint8_t text_N_y = 0;
-		uint8_t text_E_x = 0;
-		uint8_t text_E_y = 0;
-		uint8_t text_S_x = 0;
-		uint8_t text_S_y = 0;
-		uint8_t text_W_x = 0;
-		uint8_t text_W_y = 0;
-
+		void drawUI();
 		void drawCompass();
 		void drawCalibrate();
 		void resetCalibration();
@@ -57,14 +44,6 @@ class AppCompass : public tw_app
 		float mag_x_max;
 		float mag_y_max;
 		float mag_z_max;
-		
-		float hard_iron_x;
-		float hard_iron_y;
-		float hard_iron_z;
-
-		float soft_iron_x;
-		float soft_iron_y;
-		float soft_iron_z;
 };
 
 extern AppCompass app_compass;
