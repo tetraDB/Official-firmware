@@ -1,6 +1,51 @@
 #pragma once
 
 #include "Arduino.h"
+#include <stdint.h>
+
+
+class FixedSinCos
+{
+	public:
+
+	static const int32_t PRECISION_BITS = 16; // Adjust for desired precision
+
+	static int32_t fixed_cos(int32_t angle_shifted)
+	{
+		int32_t x = 1 << (PRECISION_BITS - 1); // Initial approximation
+		int32_t y = 0;
+		const int32_t cordic_gain = 0xC90FDAA; // Pre-calculated constant
+
+		// Limit angle to first quadrant (0 to 90 degrees)
+		if (angle_shifted > (1 << (PRECISION_BITS - 2))) {
+			angle_shifted -= (1 << (PRECISION_BITS - 2));
+			// Swap x and y for symmetry
+			int32_t temp = x;
+			x = -y;
+			y = temp;
+		}
+
+		for (int i = 0; i < PRECISION_BITS; i++) {
+			if (y < 0) {
+				int32_t temp = x;
+				x += (y >> i) * cordic_gain; // Rotate vector
+				y -= (temp >> i) * cordic_gain;
+			} else {
+				int32_t temp = x;
+				x -= (y >> i) * cordic_gain; 
+				y += (temp >> i) * cordic_gain;
+			}
+		}
+		return x; 
+	}
+
+	static int32_t fixed_sin(int32_t angle_shifted)
+	{
+		// Convert angle to cosine using identity sin(x + 90) = cos(x)
+		angle_shifted += (1 << (PRECISION_BITS - 2));
+		return fixed_cos(angle_shifted);
+	}
+};
 
 class Polygon
 {
