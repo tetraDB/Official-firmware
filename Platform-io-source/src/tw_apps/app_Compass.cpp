@@ -26,6 +26,7 @@ void AppCompass::setup()
 void AppCompass::pre_start() 
 {
 	running_state = RUNNING_STATE_DRAW;
+	last_poll = millis();
 }
 
 /**
@@ -134,12 +135,35 @@ void AppCompass::draw(bool force)
 	{
 		setup();
 		next_update = millis();
-
+		
 		switch(running_state)
 		{
 			case RUNNING_STATE_DRAW:
 			{
-				drawCompass(); // Draw centre of compass at 120,140
+				long dif = millis() - last_poll;
+				if (dif > polling_rate_ms)
+				{
+					last_poll = millis() + (dif - polling_rate_ms);
+					float newHeading = imu.get_yaw();
+					float a = newHeading - heading_current;
+					float b = newHeading < heading_current
+						? newHeading + 360.0 - heading_current 
+						: newHeading - 360.0 - heading_current
+					;
+					newHeading = abs(a) < abs(b)
+						? heading_current + a
+						: heading_current + b
+					;
+
+					heading_momentum = newHeading - heading_current;
+
+					heading_current = newHeading;
+					if (heading_current >= 360.0)
+						heading_current -= 360.0;
+					if (heading_current < 0.0)
+						heading_current += 360.0;
+				}
+				drawCompass(heading_current); // Draw centre of compass at 120,140
 				break;
 			}
 
@@ -293,24 +317,10 @@ void AppCompass::drawCalibrate()
 /**
  * 
  */
-void AppCompass::drawCompass()
+void AppCompass::drawCompass(float heading)
 {
-	float newHeading = imu.get_yaw();
-
-	float a = newHeading - heading;
-	float b = newHeading < heading
-		? newHeading + 360.0 - heading 
-		: newHeading - 360.0 - heading
-	;
-	heading = abs(a) < abs(b)
-		? heading + a * 0.5 // 0.5 dampen change in heading
-		: heading + b * 0.5 // 0.5 dampen change in heading
-	;
-
-	if (heading >= 360.0)
-		heading -= 360.0;
-	if (heading < 0.0)
-		heading += 360.0;
+	
+	
 
 	canvas[canvasid].fillSprite(TFT_BLACK);
 
