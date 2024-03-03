@@ -11,7 +11,13 @@
  * This is not the same as setup() above that only ever gets called the first time the app opens
  *
  */
-void App3D::pre_start() { }
+void App3D::pre_start()
+{
+	heading_target = imu.get_yaw();
+	pitch_target = imu.get_pitch();
+	roll_target = imu.get_roll();
+	last_poll = millis() - polling_rate_ms; // force initial update
+}
 
 /**
  * @brief Draw the icon that gets shown on the app menu face
@@ -60,6 +66,47 @@ void App3D::draw(bool force)
 	if (force || millis() - next_update > update_period)
 	{
 		next_update = millis();
+
+		long dif = millis() - last_poll;
+		if (dif > polling_rate_ms)
+		{
+			last_poll = millis() + (dif - polling_rate_ms);
+
+
+			heading_target = imu.get_yaw();
+			float a = heading_target - heading_current;
+			float b = heading_target < heading_current
+				? heading_target + 360.0 - heading_current 
+				: heading_target - 360.0 - heading_current
+			;
+			heading_target = abs(a) < abs(b)
+				? heading_current + a
+				: heading_current + b
+			;			
+			heading_momentum = heading_target - heading_current;
+
+			pitch_target = imu.get_pitch();
+			heading_momentum = heading_target - heading_current;
+
+			roll_target = imu.get_roll();
+			roll_momentum = roll_target - roll_current;
+		}	
+
+		heading_current += heading_momentum * 0.6;
+		heading_momentum = heading_target - heading_current;
+
+		if (heading_current >= 360.0)
+			heading_current -= 360.0;
+		if (heading_current < 0.0)
+			heading_current += 360.0;
+
+			
+		pitch_current += pitch_momentum * 0.6;
+		pitch_momentum = pitch_target - pitch_current;
+
+		roll_current += roll_momentum * 0.6;
+		roll_momentum = roll_target - roll_current;
+
 		draw3D();
 		canvas[canvasid].pushSprite(_x, _y);
 	}
@@ -70,41 +117,29 @@ void App3D::draw(bool force)
 void App3D::draw3D()
 {
 	canvas[canvasid].fillSprite(TFT_BLACK);
-	//canvas[canvasid].fillRoundRect(0, 0, display.width, display.height, 6, 0);
-	//canvas[canvasid].drawRoundRect(0, 0, display.width, display.height, 6, TFT_WHITE);
-	
-	
-	imu.update();
-	
-	float mag_x = -imu.get_pitch();
-	float mag_y = -imu.get_roll();
-	float mag_z = -imu.get_yaw();
-
-	
-	//imu.get_magnetic(&mag_x, &mag_y, &mag_z, true);	
 	
 
-	rotation[0] = mag_x;
-	rotation[1] = mag_y;
-	rotation[2] = mag_z;
+	rotation[0] = -pitch_current;
+	rotation[1] = -roll_current;
+	rotation[2] = -heading_current + 180;
 
 	rotation_matrix.updateRotationMatrix( rotation[0], 180 + rotation[1], rotation[2] );
 
 	for(uint16_t i = 0; i < verticies; i++)
-		xyz_cube_verticies_rotated[i] = rotation_matrix * xyz_cube_verticies[i];
+		verticies_data_rotated[i] = rotation_matrix * verticies_data[i];
 	
 	for(uint16_t i = 0; i < polygons; i++)
 	{
-		Polygon polygon = xyz_cube_polygons[i];
+		Polygon polygon = polygons_data[i];
 
 		if (polygon.color == 3) // ignore the black parts for now
 			continue;
 		if (polygon.color == 4) // ignore the white parts for now
 			continue;
 
-		Vector3D A = xyz_cube_verticies_rotated[polygon.index[0]];
-		Vector3D B = xyz_cube_verticies_rotated[polygon.index[1]];
-		Vector3D C = xyz_cube_verticies_rotated[polygon.index[2]];
+		Vector3D A = verticies_data_rotated[polygon.index[0]];
+		Vector3D B = verticies_data_rotated[polygon.index[1]];
+		Vector3D C = verticies_data_rotated[polygon.index[2]];
 
 		float scale_A = palne_scale / (A.z + palne_scale) + 1.3;
 		float scale_B = palne_scale / (B.z + palne_scale) + 1.3;
@@ -130,7 +165,7 @@ void App3D::draw3D()
 	}
 	
 	icon_sprite.setFreeFont(RobotoMono_Regular[9]);
-	canvas[canvasid].drawString(String(rotation[0], 0) + "," + String(rotation[1], 0) + "," + String(rotation[2], 0), display.width / 2, 260);
+	//canvas[canvasid].drawString(String(rotation[0], 0) + "," + String(rotation[1], 0) + "," + String(rotation[2], 0), display.width / 2, 260);
 }
 
 App3D app_3D;
