@@ -299,7 +299,7 @@ void Display::createFaces(bool was_sleeping)
 
 	// Create Applications
 	app_microphone.add("FFT", 25, 160);
-	app_compass.add("Compass", 100, 160);
+	app_compass.add("Compass", 50, 160);
 	app_empty.add("Empty", 1000, 40);
 
 	// Create Applications Face

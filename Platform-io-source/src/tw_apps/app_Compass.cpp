@@ -144,25 +144,29 @@ void AppCompass::draw(bool force)
 				if (dif > polling_rate_ms)
 				{
 					last_poll = millis() + (dif - polling_rate_ms);
-					float newHeading = imu.get_yaw();
-					float a = newHeading - heading_current;
-					float b = newHeading < heading_current
-						? newHeading + 360.0 - heading_current 
-						: newHeading - 360.0 - heading_current
+					heading_target = imu.get_yaw();
+					float a = heading_target - heading_current;
+					float b = heading_target < heading_current
+						? heading_target + 360.0 - heading_current 
+						: heading_target - 360.0 - heading_current
 					;
-					newHeading = abs(a) < abs(b)
+					heading_target = abs(a) < abs(b)
 						? heading_current + a
 						: heading_current + b
 					;
+					
+					heading_momentum = heading_target - heading_current;
+				}	
 
-					heading_momentum = newHeading - heading_current;
+				//eading_momentum *= 0.2;
+				heading_current += heading_momentum * 0.2;
+				heading_momentum = heading_target - heading_current;
 
-					heading_current = newHeading;
-					if (heading_current >= 360.0)
-						heading_current -= 360.0;
-					if (heading_current < 0.0)
-						heading_current += 360.0;
-				}
+				if (heading_current >= 360.0)
+					heading_current -= 360.0;
+				if (heading_current < 0.0)
+					heading_current += 360.0;
+
 				drawCompass(heading_current); // Draw centre of compass at 120,140
 				break;
 			}
@@ -193,81 +197,6 @@ void AppCompass::resetCalibration()
 	mag_z_max = -6000;
 	
 	canvas[canvasid].fillSprite(TFT_BLACK);
-}
-
-
-/**
- * 
- */
-void AppCompass::drawUI()
-{
-	switch(running_state)
-	{
-		case RUNNING_STATE_DRAW:
-		{
-			uint16_t bx = 10, by = 10;
-			uint16_t BUTTON_BG_COLOUR = B_BLUE;
-
-			canvas[canvasid].fillSmoothRoundRect(-20, -20, 55, 55, 16, BUTTON_BG_COLOUR, BUTTON_BG_COLOUR);
-			
-			canvas[canvasid].fillRect(bx + 3, by + 3, 15, 15, TFT_DARKGREY);
-
-			canvas[canvasid].fillRect(bx +  3, by +  3, 2, 2, BUTTON_BG_COLOUR);
-			canvas[canvasid].fillRect(bx + 16, by +  3, 2, 2, BUTTON_BG_COLOUR);
-			canvas[canvasid].fillRect(bx +  3, by + 16, 2, 2, BUTTON_BG_COLOUR);
-			canvas[canvasid].fillRect(bx + 16, by + 16, 2, 2, BUTTON_BG_COLOUR);
-
-			canvas[canvasid].fillRect(bx +  6, by +  3, 3, 2, BUTTON_BG_COLOUR);
-			canvas[canvasid].fillRect(bx + 12, by +  3, 3, 2, BUTTON_BG_COLOUR);
-			canvas[canvasid].fillRect(bx +  6, by + 16, 3, 2, BUTTON_BG_COLOUR);
-			canvas[canvasid].fillRect(bx + 12, by + 16, 3, 2, BUTTON_BG_COLOUR);
-
-			canvas[canvasid].fillRect(bx +  3, by +  6, 2, 3, BUTTON_BG_COLOUR);
-			canvas[canvasid].fillRect(bx + 16, by +  6, 2, 3, BUTTON_BG_COLOUR);
-			canvas[canvasid].fillRect(bx +  3, by + 12, 2, 3, BUTTON_BG_COLOUR);
-			canvas[canvasid].fillRect(bx + 16, by + 12, 2, 3, BUTTON_BG_COLOUR);
-
-			canvas[canvasid].fillRect(bx +  8, by + 8, 5, 5, BUTTON_BG_COLOUR);
-
-			canvas[canvasid].drawPixel(bx +  5, by +  3, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx + 15, by +  3, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx +  3, by +  5, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx +  7, by +  5, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx + 13, by +  5, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx + 17, by +  5, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx +  5, by +  7, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx + 10, by +  7, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx + 15, by +  7, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx +  7, by + 10, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx + 13, by + 10, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx +  5, by + 13, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx + 10, by + 13, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx + 15, by + 13, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx +  3, by + 15, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx +  7, by + 15, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx + 13, by + 15, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx + 17, by + 15, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx +  5, by + 17, BUTTON_BG_COLOUR);
-			canvas[canvasid].drawPixel(bx + 15, by + 17, BUTTON_BG_COLOUR);
-			break;
-		}
-
-		case RUNNING_STATE_CALIBRATE:
-		{
-			canvas[canvasid].fillSmoothRoundRect(-32, display.height - 32, 64, 64, 16, B_GREEN, B_GREEN);
-			canvas[canvasid].setFreeFont(RobotoMono_Regular[10]);
-			canvas[canvasid].setTextColor(TFT_GREEN);
-			canvas[canvasid].setTextDatum(CC_DATUM);
-			canvas[canvasid].drawString("S", 16, display.height - 19);
-
-			canvas[canvasid].fillSmoothRoundRect(display.width - 32, display.height - 32, 64, 64, 16, B_RED, B_RED);
-			canvas[canvasid].setFreeFont(RobotoMono_Regular[10]);
-			canvas[canvasid].setTextColor(TFT_RED);
-			canvas[canvasid].setTextDatum(CC_DATUM);
-			canvas[canvasid].drawString("X", display.width - 18, display.height - 19);
-			break;
-		}
-	}
 }
 
 /**
@@ -318,9 +247,7 @@ void AppCompass::drawCalibrate()
  * 
  */
 void AppCompass::drawCompass(float heading)
-{
-	
-	
+{	
 
 	canvas[canvasid].fillSprite(TFT_BLACK);
 
@@ -390,4 +317,99 @@ void AppCompass::drawCompass(float heading)
 	canvas[canvasid].fillSmoothCircle(120, 140, 3, TFT_DARKGREY, TFT_LIGHTGREY);
 }
 
+/**
+ * 
+ */
+void AppCompass::drawUI()
+{
+	int16_t x = 0;
+	int16_t y = 0;
+
+	switch(running_state)
+	{
+		case RUNNING_STATE_DRAW:
+		{
+			x = 0;
+			y = 0;
+
+			uint16_t BUTTON_BG_COLOUR = B_BLUE;
+
+			canvas[canvasid].fillRect(x, y, 32, 15, BUTTON_BG_COLOUR);
+			canvas[canvasid].fillRect(x, y, 15, 32, BUTTON_BG_COLOUR);
+			canvas[canvasid].fillSmoothRoundRect(x, y, 32, 32, 16, BUTTON_BG_COLOUR, BUTTON_BG_COLOUR);
+
+			x += 10;
+			y += 10;
+
+			canvas[canvasid].fillRect(x +  3, y + 3, 15, 15, TFT_DARKGREY);
+
+			canvas[canvasid].fillRect(x +  3, y +  3, 2, 2, BUTTON_BG_COLOUR);
+			canvas[canvasid].fillRect(x + 16, y +  3, 2, 2, BUTTON_BG_COLOUR);
+			canvas[canvasid].fillRect(x +  3, y + 16, 2, 2, BUTTON_BG_COLOUR);
+			canvas[canvasid].fillRect(x + 16, y + 16, 2, 2, BUTTON_BG_COLOUR);
+
+			canvas[canvasid].fillRect(x +  6, y +  3, 3, 2, BUTTON_BG_COLOUR);
+			canvas[canvasid].fillRect(x + 12, y +  3, 3, 2, BUTTON_BG_COLOUR);
+			canvas[canvasid].fillRect(x +  6, y + 16, 3, 2, BUTTON_BG_COLOUR);
+			canvas[canvasid].fillRect(x + 12, y + 16, 3, 2, BUTTON_BG_COLOUR);
+
+			canvas[canvasid].fillRect(x +  3, y +  6, 2, 3, BUTTON_BG_COLOUR);
+			canvas[canvasid].fillRect(x + 16, y +  6, 2, 3, BUTTON_BG_COLOUR);
+			canvas[canvasid].fillRect(x +  3, y + 12, 2, 3, BUTTON_BG_COLOUR);
+			canvas[canvasid].fillRect(x + 16, y + 12, 2, 3, BUTTON_BG_COLOUR);
+
+			canvas[canvasid].fillRect(x +  8, y + 8, 5, 5, BUTTON_BG_COLOUR);
+
+			canvas[canvasid].drawPixel(x +  5, y +  3, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x + 15, y +  3, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x +  3, y +  5, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x +  7, y +  5, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x + 13, y +  5, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x + 17, y +  5, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x +  5, y +  7, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x + 10, y +  7, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x + 15, y +  7, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x +  7, y + 10, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x + 13, y + 10, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x +  5, y + 13, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x + 10, y + 13, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x + 15, y + 13, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x +  3, y + 15, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x +  7, y + 15, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x + 13, y + 15, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x + 17, y + 15, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x +  5, y + 17, BUTTON_BG_COLOUR);
+			canvas[canvasid].drawPixel(x + 15, y + 17, BUTTON_BG_COLOUR);
+			break;
+		}
+
+		case RUNNING_STATE_CALIBRATE:
+		{
+			x = 0;
+			y = display.height - 32;
+			canvas[canvasid].fillSmoothRoundRect(x, y, 32, 32, 16, B_GREEN, B_GREEN);
+			canvas[canvasid].fillRect(x, y + 16, 32, 16, B_GREEN);
+			canvas[canvasid].fillRect(x, y, 15, 32, B_GREEN);
+			canvas[canvasid].setFreeFont(RobotoMono_Regular[10]);
+			canvas[canvasid].setTextColor(TFT_GREEN);
+			canvas[canvasid].setTextDatum(CC_DATUM);
+			canvas[canvasid].drawString("S", x + 18, y + 14);
+
+			x = display.width - 32;
+			y = display.height - 32;
+			canvas[canvasid].fillSmoothRoundRect(x, y, 32, 32, 16, B_RED, B_RED);
+			canvas[canvasid].fillRect(x, y + 16, 32, 16, B_RED);
+			canvas[canvasid].fillRect(x + 16, y, 16, 32, B_RED);
+			canvas[canvasid].setFreeFont(RobotoMono_Regular[10]);
+			canvas[canvasid].setTextColor(TFT_RED);
+			canvas[canvasid].setTextDatum(CC_DATUM);
+			canvas[canvasid].drawString("X", x + 14, y + 14);
+			break;
+		}
+	}
+}
+
+/**
+ * 
+ */
 AppCompass app_compass;
