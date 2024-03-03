@@ -299,10 +299,10 @@ void Display::createFaces(bool was_sleeping)
 		show_watch_from_boot();
 
 	// Create Applications
-	app_microphone.add(	    "FFT", 	  25, 160);
-	app_compass.add(	"Compass",   100,  80);
-	app_3D.add(			     "3D",    30, 120);
-	app_empty.add(		  "Empty", 	1000,  40);
+	app_microphone.add("FFT", 25, 160);
+	app_compass.add("Compass", 50, 160);	
+	app_3D.add("3D", 50, 160);
+	app_empty.add("Empty", 1000, 40);
 
 	// Create Applications Face
 	face_applist.add("APPS", 1000, 40);

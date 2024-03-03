@@ -12,6 +12,7 @@ class AppCompass : public tw_app
 		bool process_touch(touch_event_t touch_event);
 
 	private:
+
 		#define BACKGROUND TFT_BLACK
 		
 		// needle values
@@ -26,12 +27,18 @@ class AppCompass : public tw_app
 		#define B_BLUE RGB(10, 40, 60)
 		#define B_RED RGB(40, 20, 20)
 		#define B_GREEN RGB(20, 40, 20)
+		#define polling_rate_ms 100
 
-		float heading = 0;
+		unsigned long last_poll;
+
+		float heading_target = 0;
+		float heading_current = 0;
+		float heading_momentum = 0;
+
 		uint8_t running_state;
 
 		void drawUI();
-		void drawCompass();
+		void drawCompass(float heading);
 		void drawCalibrate();
 		void resetCalibration();
 
