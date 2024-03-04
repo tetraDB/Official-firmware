@@ -144,7 +144,9 @@ void AppCompass::draw(bool force)
 				if (dif > polling_rate_ms)
 				{
 					last_poll = millis() + (dif - polling_rate_ms);
-					heading_target = imu.get_yaw();
+					imu.update();
+					heading_target = imu.get_yaw(imu.get_pitch(), imu.get_roll());
+
 					float a = heading_target - heading_current;
 					float b = heading_target < heading_current
 						? heading_target + 360.0 - heading_current 

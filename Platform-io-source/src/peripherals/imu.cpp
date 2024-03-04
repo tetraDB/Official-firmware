@@ -398,11 +398,17 @@ void IMU::get_magnetic(float *x, float *y, float *z, bool iron_compensated)
 	}
 }
 
+
+float get_yaw()
+{
+
+}
+
 /*
 	Resource used to tilt correct the yaw
 	https://www.instructables.com/Tilt-Compensated-Compass/
 */
-float IMU::get_yaw(bool tilt_compensated)
+float IMU::get_yaw(float pitch, float roll)
 {
 	float heading = 0;
 
@@ -416,21 +422,13 @@ float IMU::get_yaw(bool tilt_compensated)
 	get_magnetic(&mag_x, &mag_y, &mag_z, true);
 	mag_x = -mag_x;	// invert x because the sensor is upside down
 
-	if (tilt_compensated)
-	{
-		update();	
-		float mag_pitch =  get_roll() * DEG_TO_RAD; // mag pitch uses imu roll
-		float mag_roll = -get_pitch() * DEG_TO_RAD; // mag roll uses imu pitch
+	float mag_pitch =  roll * DEG_TO_RAD; // mag pitch uses imu roll
+	float mag_roll = -pitch * DEG_TO_RAD; // mag roll uses imu pitch
 
-		float tilt_correct_x = mag_x * cos(mag_pitch) + mag_y * sin(mag_roll) * sin(mag_pitch) - mag_z * cos(mag_roll) * sin(mag_pitch);
-		float tilt_correct_y = mag_y * cos(mag_roll) + mag_z * sin(mag_roll);
+	float tilt_correct_x = mag_x * cos(mag_pitch) + mag_y * sin(mag_roll) * sin(mag_pitch) - mag_z * cos(mag_roll) * sin(mag_pitch);
+	float tilt_correct_y = mag_y * cos(mag_roll) + mag_z * sin(mag_roll);
 
-		heading = atan2(tilt_correct_x, tilt_correct_y) * RAD_TO_DEG;
-	}
-	else
-	{
-		heading = atan2(mag_x, mag_y) * RAD_TO_DEG;
-	}	
+	heading = atan2(tilt_correct_x, tilt_correct_y) * RAD_TO_DEG;
 
 	// Apply magnetic declination to convert magnetic heading
 	// to geographic heading

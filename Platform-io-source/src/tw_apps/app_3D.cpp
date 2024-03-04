@@ -13,9 +13,10 @@
  */
 void App3D::pre_start()
 {
-	heading_target = imu.get_yaw();
+	imu.update();
 	pitch_target = imu.get_pitch();
-	roll_target = imu.get_roll();
+	roll_target = imu.get_roll();	
+	heading_target = imu.get_yaw(pitch_target, roll_target);
 	last_poll = millis() - polling_rate_ms; // force initial update
 }
 
@@ -72,8 +73,18 @@ void App3D::draw(bool force)
 		{
 			last_poll = millis() + (dif - polling_rate_ms);
 
+			imu.update();
 
-			heading_target = imu.get_yaw();
+			pitch_target = imu.get_pitch();
+			pitch_momentum = pitch_target - pitch_current;
+			pitch_current += pitch_momentum * 0.5;
+
+			roll_target = imu.get_roll();
+			roll_momentum = roll_target - roll_current;
+			roll_current += roll_momentum * 0.5;
+
+			heading_target = imu.get_yaw(pitch_current, roll_current);
+			
 			float a = heading_target - heading_current;
 			float b = heading_target < heading_current
 				? heading_target + 360.0 - heading_current 
@@ -83,17 +94,22 @@ void App3D::draw(bool force)
 				? heading_current + a
 				: heading_current + b
 			;			
-			heading_momentum = heading_target - heading_current;
+			heading_momentum = heading_target - heading_current;	
+			heading_current += heading_momentum * 0.5;		
+		}
+		else
+		{
+			pitch_momentum = pitch_target - pitch_current;
+			pitch_current += pitch_momentum * 0.5;
 
-			pitch_target = imu.get_pitch();
-			heading_momentum = heading_target - heading_current;
-
-			roll_target = imu.get_roll();
 			roll_momentum = roll_target - roll_current;
-		}	
+			roll_current += roll_momentum * 0.5;
 
-		heading_current += heading_momentum * 0.6;
-		heading_momentum = heading_target - heading_current;
+			heading_momentum = heading_target - heading_current;
+			heading_current += heading_momentum * 0.5;
+		}
+
+
 
 		if (heading_current >= 360.0)
 			heading_current -= 360.0;
@@ -101,11 +117,7 @@ void App3D::draw(bool force)
 			heading_current += 360.0;
 
 			
-		pitch_current += pitch_momentum * 0.6;
-		pitch_momentum = pitch_target - pitch_current;
 
-		roll_current += roll_momentum * 0.6;
-		roll_momentum = roll_target - roll_current;
 
 		draw3D();
 		canvas[canvasid].pushSprite(_x, _y);
@@ -118,28 +130,54 @@ void App3D::draw3D()
 {
 	canvas[canvasid].fillSprite(TFT_BLACK);
 	
-
-	rotation[0] = -pitch_current;
-	rotation[1] = -roll_current;
-	rotation[2] = -heading_current + 180;
-
-	rotation_matrix.updateRotationMatrix( rotation[0], 180 + rotation[1], rotation[2] );
+	rotation_matrix.updateRotationMatrix(-pitch_current, 180 - roll_current, 180);
 
 	for(uint16_t i = 0; i < verticies; i++)
 		verticies_data_rotated[i] = rotation_matrix * verticies_data[i];
-	
+
 	for(uint16_t i = 0; i < polygons; i++)
 	{
 		Polygon polygon = polygons_data[i];
 
-		if (polygon.color == 3) // ignore the black parts for now
-			continue;
-		if (polygon.color == 4) // ignore the white parts for now
-			continue;
-
 		Vector3D A = verticies_data_rotated[polygon.index[0]];
 		Vector3D B = verticies_data_rotated[polygon.index[1]];
 		Vector3D C = verticies_data_rotated[polygon.index[2]];
+
+		float scale_A = palne_scale / (A.z + palne_scale) + 1.3;
+		float scale_B = palne_scale / (B.z + palne_scale) + 1.3;
+		float scale_C = palne_scale / (C.z + palne_scale) + 1.3;
+		
+		A *= scale_A;
+		B *= scale_B;
+		C *= scale_C;
+
+		// back face culling
+		//if (((A.y - B.y)*(C.x - B.x)) - ((A.x - B.x)*(C.y - B.y)) >= 0 )		
+		//	continue;
+
+		canvas[canvasid].fillTriangle(
+			display_center_x + A.x, 
+			display_center_y + A.y, 
+			display_center_x + B.x,
+			display_center_y + B.y, 
+			display_center_x + C.x,
+			display_center_y + C.y,
+			polygon_colors[polygon.color]
+		);
+	}
+
+	rotation_matrix.updateRotationMatrix(-pitch_current, 180 - roll_current, -heading_current + 180 );
+
+	for(uint16_t i = 0; i < arrow_verticies; i++)
+		arrow_verticies_data_rotated[i] = rotation_matrix * arrow_verticies_data[i];
+
+	for(uint16_t i = 0; i < arrow_polygons; i++)
+	{
+		Polygon polygon = arrow_polygons_data[i];
+
+		Vector3D A = arrow_verticies_data_rotated[polygon.index[0]];
+		Vector3D B = arrow_verticies_data_rotated[polygon.index[1]];
+		Vector3D C = arrow_verticies_data_rotated[polygon.index[2]];
 
 		float scale_A = palne_scale / (A.z + palne_scale) + 1.3;
 		float scale_B = palne_scale / (B.z + palne_scale) + 1.3;
@@ -163,7 +201,7 @@ void App3D::draw3D()
 			polygon_colors[polygon.color]
 		);
 	}
-	
+
 	icon_sprite.setFreeFont(RobotoMono_Regular[9]);
 	//canvas[canvasid].drawString(String(rotation[0], 0) + "," + String(rotation[1], 0) + "," + String(rotation[2], 0), display.width / 2, 260);
 }

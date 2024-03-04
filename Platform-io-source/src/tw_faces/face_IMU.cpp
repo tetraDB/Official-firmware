@@ -97,9 +97,11 @@ void FaceIMU::draw(bool force)
 				canvas[canvasid].fillRoundRect(135, 165, 100, 40, 8, RGB(0x44, 0x44, 0x44));
 				canvas[canvasid].fillRoundRect(135, 235, 100, 40, 8, RGB(0x44, 0x44, 0x44));
 				canvas[canvasid].setTextColor(TFT_WHITE);
-				canvas[canvasid].drawNumber(imu.get_pitch(), 185, 115);
-				canvas[canvasid].drawNumber(imu.get_roll(), 185, 185);
-				canvas[canvasid].drawNumber(imu.get_yaw(), 185, 255);
+				float pitch = imu.get_pitch();
+				float roll = imu.get_roll();
+				canvas[canvasid].drawNumber(pitch, 185, 115);
+				canvas[canvasid].drawNumber(roll, 185, 185);
+				canvas[canvasid].drawNumber(imu.get_yaw(pitch, roll), 185, 255);
 			}
 
 			for (int w = 0; w < widgets.size(); w++)
