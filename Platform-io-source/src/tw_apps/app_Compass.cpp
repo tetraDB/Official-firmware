@@ -26,7 +26,7 @@ void AppCompass::setup()
 void AppCompass::pre_start() 
 {
 	running_state = RUNNING_STATE_DRAW;
-	last_poll = millis();
+	last_poll = millis() - polling_rate_ms;
 }
 
 /**
@@ -101,8 +101,9 @@ bool AppCompass::process_touch(touch_event_t touch_event)
 				settings.config.compass.soft_iron_y = soft_scale / soft_iron_y;
 				settings.config.compass.soft_iron_z = soft_scale / soft_iron_z;
 
-				settings.save(true);			
-
+				settings.save(true);
+				
+				last_poll = millis() - polling_rate_ms; // prevent the draw state waiting for some catchup?? needs investigating more because that shouldn't be the case
 				running_state = RUNNING_STATE_DRAW;
 				return true;
 			}
@@ -126,6 +127,66 @@ bool AppCompass::process_touch(touch_event_t touch_event)
 /**
  * 
  */
+void AppCompass::update_heading()
+{
+	long dif = millis() - last_poll;
+	if (dif > polling_rate_ms)
+	{
+		last_poll = millis() + (dif - polling_rate_ms);
+
+		imu.update();
+
+		pitch_target = imu.get_pitch();
+		roll_target = imu.get_roll();
+
+		float mag_x;
+		float mag_y;
+		float mag_z;
+		
+		imu.get_magnetic(&mag_x, &mag_y, &mag_z, true);
+		mag_x = -mag_x;	// invert x because the sensor is upside down
+
+		float mag_pitch =  roll_target * DEG_TO_RAD; // mag pitch uses imu roll
+		float mag_roll = -pitch_target * DEG_TO_RAD; // mag roll uses imu pitch
+
+		float tilt_correct_x = mag_x * cos(mag_pitch) + mag_y * sin(mag_roll) * sin(mag_pitch) - mag_z * cos(mag_roll) * sin(mag_pitch);
+		float tilt_correct_y = mag_y * cos(mag_roll) + mag_z * sin(mag_roll);
+
+		heading_target = atan2f(tilt_correct_x, tilt_correct_y) * RAD_TO_DEG;
+		
+		float a = heading_target - heading_current;
+		float b = heading_target < heading_current
+			? heading_target + 360.0 - heading_current 
+			: heading_target - 360.0 - heading_current
+		;
+		heading_target = abs(a) < abs(b)
+			? heading_current + a
+			: heading_current + b
+		;
+		
+		heading_momentum = heading_target - heading_current;
+	}
+
+	heading_current += heading_momentum * 0.7;
+	heading_momentum = heading_target - heading_current;
+	heading_momentum *= 0.2;
+
+	if (heading_current >= 360.0)
+	{
+		heading_current -= 360.0;
+		heading_target -= 360.0;
+	}
+
+	if (heading_current < 0.0)
+	{
+		heading_current += 360.0;
+		heading_target += 360.0;
+	}
+}
+
+/**
+ * 
+ */
 void AppCompass::draw(bool force)
 {
 	// Override the CPU settings for this app (if needed)
@@ -140,33 +201,7 @@ void AppCompass::draw(bool force)
 		{
 			case RUNNING_STATE_DRAW:
 			{
-				long dif = millis() - last_poll;
-				if (dif > polling_rate_ms)
-				{
-					last_poll = millis() + (dif - polling_rate_ms);
-					heading_target = imu.get_yaw();
-					float a = heading_target - heading_current;
-					float b = heading_target < heading_current
-						? heading_target + 360.0 - heading_current 
-						: heading_target - 360.0 - heading_current
-					;
-					heading_target = abs(a) < abs(b)
-						? heading_current + a
-						: heading_current + b
-					;
-					
-					heading_momentum = heading_target - heading_current;
-				}	
-
-				//eading_momentum *= 0.2;
-				heading_current += heading_momentum * 0.2;
-				heading_momentum = heading_target - heading_current;
-
-				if (heading_current >= 360.0)
-					heading_current -= 360.0;
-				if (heading_current < 0.0)
-					heading_current += 360.0;
-
+				update_heading();
 				drawCompass(heading_current); // Draw centre of compass at 120,140
 				break;
 			}
@@ -243,6 +278,25 @@ void AppCompass::drawCalibrate()
 	canvas[canvasid].drawSmoothCircle(display.center_x, display.center_y, abs(mag_z_max - mag_z_min) / 2, TFT_BLUE, TFT_TRANSPARENT);
 }
 
+
+
+/**
+ * 
+ */
+void AppCompass::drawCircle(TFT_eSprite* sprite, int16_t x, int16_t y, int16_t diameter, int16_t thickness, uint32_t colour)
+{
+	thickness *= .5;
+	int16_t half_thickness = thickness / 2;
+	int16_t half_thickness2 = thickness - half_thickness;
+
+	int16_t radius = diameter / 2;
+
+	int16_t left = x - radius - half_thickness;
+	int16_t top = y - radius - half_thickness;
+
+	sprite->drawSmoothRoundRect(left, top, radius + half_thickness, radius - half_thickness2, 0, 0, colour, TFT_TRANSPARENT);
+}
+
 /**
  * 
  */
@@ -250,6 +304,7 @@ void AppCompass::drawCompass(float heading)
 {	
 
 	canvas[canvasid].fillSprite(TFT_BLACK);
+
 
 	/*
 	 Rotate a unit 1 vector pointing down (Cartesian coordinate) [x: 0, y: 1] around the origin at the given angle
@@ -283,11 +338,160 @@ void AppCompass::drawCompass(float heading)
 	uint8_t text_S_x = display.center_x + NESW_RADIUS * normal_x;
 	uint8_t text_S_y = display.center_y + NESW_RADIUS * normal_y;
 
-	uint8_t text_E_x = display.center_x - NESW_RADIUS * normal_x_90 * 0.6;
-	uint8_t text_E_y = display.center_y - NESW_RADIUS * normal_y_90 * 0.6;	
-	uint8_t text_W_x = display.center_x + NESW_RADIUS * normal_x_90 * 0.6;
-	uint8_t text_W_y = display.center_y + NESW_RADIUS * normal_y_90 * 0.6;
+	uint8_t text_E_x = display.center_x - NESW_RADIUS * normal_x_90;
+	uint8_t text_E_y = display.center_y - NESW_RADIUS * normal_y_90;	
+	uint8_t text_W_x = display.center_x + NESW_RADIUS * normal_x_90;
+	uint8_t text_W_y = display.center_y + NESW_RADIUS * normal_y_90;
 
+
+
+
+	canvas[canvasid].fillSmoothCircle(display.center_x, display.center_y, 6, COLOUR_CIRCLE_2);
+
+	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 30, 15, COLOUR_CIRCLE_1);
+	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 30,  5, COLOUR_CIRCLE_2);
+
+	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 56,  1, COLOUR_DASH);
+	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 69,  1, COLOUR_DASH);
+
+	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 142,  8, COLOUR_CIRCLE_2);
+	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 150,  8, COLOUR_CIRCLE_1);
+
+	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 183,  8, COLOUR_CIRCLE_1);
+	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 191,  8, COLOUR_CIRCLE_2);
+	
+	canvas[canvasid].setFreeFont(&Roboto_Mono_24);
+	canvas[canvasid].setTextColor(RGB(247, 246, 215));
+	canvas[canvasid].setTextDatum(CC_DATUM);
+	canvas[canvasid].drawString("N", text_N_x, text_N_y);
+	canvas[canvasid].drawString("E", text_E_x, text_E_y);
+	canvas[canvasid].drawString("S", text_S_x, text_S_y);
+	canvas[canvasid].drawString("W", text_W_x, text_W_y);
+
+	float i_r = 80;
+	float o_r = i_r + 6;
+	float count = 32;
+
+	for (float i = 0; i < 360; i += 360 / count)
+	{
+		float a = heading_in_rad + i * DEG_TO_RAD;
+		float sa = sin(a);
+		float ca = cos(a);
+		canvas[canvasid].drawLine(
+			display.center_x + -i_r * sa,
+			display.center_y + i_r * ca,
+			display.center_x + -o_r * sa,
+			display.center_y + o_r * ca, COLOUR_DASH
+		);	
+	}
+
+	int16_t x1 = display.center_x - 80 * normal_x;
+	int16_t y1 = display.center_y - 80 * normal_y;
+
+	int16_t x2 = display.center_x - 20 * normal_x;
+	int16_t y2 = display.center_y - 20 * normal_y;
+
+	int16_t x3 = display.center_x - 17 * normal_x;
+	int16_t y3 = display.center_y - 17 * normal_y;
+
+	int16_t x4 = display.center_x - 20 * normal_x;
+	int16_t y4 = display.center_y - 20 * normal_y;
+
+	canvas[canvasid].fillTriangle(
+		x1, y1,
+		x3 - 10 * -normal_x_90,	y3 - 10 * -normal_y_90,
+		x4,	y4,
+		COLOUR_BLADE_LIGHT
+	);
+
+	canvas[canvasid].fillTriangle(
+		x1,	y1,
+		x3 - 10 * normal_x_90, y3 - 10 * normal_y_90,
+		x4,	y4,
+		COLOUR_BLADE_DARK
+	);
+
+	x1 = display.center_x + 80 * normal_x;
+	y1 = display.center_y + 80 * normal_y;
+
+	x2 = display.center_x + 20 * normal_x;
+	y2 = display.center_y + 20 * normal_y;
+
+	x3 = display.center_x + 17 * normal_x;
+	y3 = display.center_y + 17 * normal_y;
+
+	x4 = display.center_x + 20 * normal_x;
+	y4 = display.center_y + 20 * normal_y;
+
+	canvas[canvasid].fillTriangle(
+		x1, y1,
+		x3 - 10 * -normal_x_90,	y3 - 10 * -normal_y_90,
+		x4,	y4,
+		COLOUR_BLADE_LIGHT
+	);
+
+	canvas[canvasid].fillTriangle(
+		x1,	y1,
+		x3 - 10 * normal_x_90, y3 - 10 * normal_y_90,
+		x4,	y4,
+		COLOUR_BLADE_DARK
+	);
+
+
+	x1 = display.center_x - 40 * normal_x_90;
+	y1 = display.center_y - 40 * normal_y_90;
+
+	x2 = display.center_x - 20 * normal_x_90;
+	y2 = display.center_y - 20 * normal_y_90;
+
+	x3 = display.center_x - 17 * normal_x_90;
+	y3 = display.center_y - 17 * normal_y_90;
+
+	x4 = display.center_x - 20 * normal_x_90;
+	y4 = display.center_y - 20 * normal_y_90;
+
+	canvas[canvasid].fillTriangle(
+		x1, y1,
+		x3 - 10 * -normal_x, y3 - 10 * -normal_y,
+		x4,	y4,
+		COLOUR_BLADE_DARK
+	);
+
+	canvas[canvasid].fillTriangle(
+		x1,	y1,
+		x3 - 10 * normal_x, y3 - 10 * normal_y,
+		x4,	y4,
+		COLOUR_BLADE_MID
+	);
+
+
+	x1 = display.center_x + 40 * normal_x_90;
+	y1 = display.center_y + 40 * normal_y_90;
+
+	x2 = display.center_x + 20 * normal_x_90;
+	y2 = display.center_y + 20 * normal_y_90;
+
+	x3 = display.center_x + 17 * normal_x_90;
+	y3 = display.center_y + 17 * normal_y_90;
+
+	x4 = display.center_x + 20 * normal_x_90;
+	y4 = display.center_y + 20 * normal_y_90;
+
+	canvas[canvasid].fillTriangle(
+		x1, y1,
+		x3 - 10 * -normal_x, y3 - 10 * -normal_y,
+		x4,	y4,
+		COLOUR_BLADE_DARK
+	);
+
+	canvas[canvasid].fillTriangle(
+		x1,	y1,
+		x3 - 10 * normal_x, y3 - 10 * normal_y,
+		x4,	y4,
+		COLOUR_BLADE_MID
+	);
+
+/*
 	canvas[canvasid].drawCircle(120, 140, 30, TFT_DARKGREY);
 
 	canvas[canvasid].setFreeFont(RobotoMono_Regular[12]);
@@ -314,7 +518,7 @@ void AppCompass::drawCompass(float heading)
 
 	canvas[canvasid].fillTriangle(needle_N_x, needle_N_y, needle_E_x, needle_E_y, needle_W_x, needle_W_y, TFT_RED);
 	canvas[canvasid].fillTriangle(needle_S_x, needle_S_y, needle_E_x, needle_E_y, needle_W_x, needle_W_y, TFT_LIGHTGREY);
-	canvas[canvasid].fillSmoothCircle(120, 140, 3, TFT_DARKGREY, TFT_LIGHTGREY);
+	canvas[canvasid].fillSmoothCircle(120, 140, 3, TFT_DARKGREY, TFT_LIGHTGREY);*/
 }
 
 /**
@@ -408,6 +612,7 @@ void AppCompass::drawUI()
 		}
 	}
 }
+
 
 /**
  * 
