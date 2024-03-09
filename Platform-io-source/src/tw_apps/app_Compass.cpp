@@ -167,9 +167,9 @@ void AppCompass::update_heading()
 		heading_momentum = heading_target - heading_current;
 	}
 
-	heading_current += heading_momentum * 0.7;
+	heading_current += heading_momentum * 0.5;
 	heading_momentum = heading_target - heading_current;
-	heading_momentum *= 0.2;
+	heading_momentum *= 0.5;
 
 	if (heading_current >= 360.0)
 	{
@@ -297,14 +297,11 @@ void AppCompass::drawCircle(TFT_eSprite* sprite, int16_t x, int16_t y, int16_t d
 	sprite->drawSmoothRoundRect(left, top, radius + half_thickness, radius - half_thickness2, 0, 0, colour, TFT_TRANSPARENT);
 }
 
-/**
- * 
- */
+
 void AppCompass::drawCompass(float heading)
 {	
 
 	canvas[canvasid].fillSprite(TFT_BLACK);
-
 
 	/*
 	 Rotate a unit 1 vector pointing down (Cartesian coordinate) [x: 0, y: 1] around the origin at the given angle
@@ -343,155 +340,6 @@ void AppCompass::drawCompass(float heading)
 	uint8_t text_W_x = display.center_x + NESW_RADIUS * normal_x_90;
 	uint8_t text_W_y = display.center_y + NESW_RADIUS * normal_y_90;
 
-
-
-
-	canvas[canvasid].fillSmoothCircle(display.center_x, display.center_y, 6, COLOUR_CIRCLE_2);
-
-	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 30, 15, COLOUR_CIRCLE_1);
-	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 30,  5, COLOUR_CIRCLE_2);
-
-	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 56,  1, COLOUR_DASH);
-	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 69,  1, COLOUR_DASH);
-
-	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 142,  8, COLOUR_CIRCLE_2);
-	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 150,  8, COLOUR_CIRCLE_1);
-
-	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 183,  8, COLOUR_CIRCLE_1);
-	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 191,  8, COLOUR_CIRCLE_2);
-	
-	canvas[canvasid].setFreeFont(&Roboto_Mono_24);
-	canvas[canvasid].setTextColor(RGB(247, 246, 215));
-	canvas[canvasid].setTextDatum(CC_DATUM);
-	canvas[canvasid].drawString("N", text_N_x, text_N_y);
-	canvas[canvasid].drawString("E", text_E_x, text_E_y);
-	canvas[canvasid].drawString("S", text_S_x, text_S_y);
-	canvas[canvasid].drawString("W", text_W_x, text_W_y);
-
-	float i_r = 80;
-	float o_r = i_r + 6;
-	float count = 32;
-
-	for (float i = 0; i < 360; i += 360 / count)
-	{
-		float a = heading_in_rad + i * DEG_TO_RAD;
-		float sa = sin(a);
-		float ca = cos(a);
-		canvas[canvasid].drawLine(
-			display.center_x + -i_r * sa,
-			display.center_y + i_r * ca,
-			display.center_x + -o_r * sa,
-			display.center_y + o_r * ca, COLOUR_DASH
-		);	
-	}
-
-	int16_t x1 = display.center_x - 80 * normal_x;
-	int16_t y1 = display.center_y - 80 * normal_y;
-
-	int16_t x2 = display.center_x - 20 * normal_x;
-	int16_t y2 = display.center_y - 20 * normal_y;
-
-	int16_t x3 = display.center_x - 17 * normal_x;
-	int16_t y3 = display.center_y - 17 * normal_y;
-
-	int16_t x4 = display.center_x - 20 * normal_x;
-	int16_t y4 = display.center_y - 20 * normal_y;
-
-	canvas[canvasid].fillTriangle(
-		x1, y1,
-		x3 - 10 * -normal_x_90,	y3 - 10 * -normal_y_90,
-		x4,	y4,
-		COLOUR_BLADE_LIGHT
-	);
-
-	canvas[canvasid].fillTriangle(
-		x1,	y1,
-		x3 - 10 * normal_x_90, y3 - 10 * normal_y_90,
-		x4,	y4,
-		COLOUR_BLADE_DARK
-	);
-
-	x1 = display.center_x + 80 * normal_x;
-	y1 = display.center_y + 80 * normal_y;
-
-	x2 = display.center_x + 20 * normal_x;
-	y2 = display.center_y + 20 * normal_y;
-
-	x3 = display.center_x + 17 * normal_x;
-	y3 = display.center_y + 17 * normal_y;
-
-	x4 = display.center_x + 20 * normal_x;
-	y4 = display.center_y + 20 * normal_y;
-
-	canvas[canvasid].fillTriangle(
-		x1, y1,
-		x3 - 10 * -normal_x_90,	y3 - 10 * -normal_y_90,
-		x4,	y4,
-		COLOUR_BLADE_LIGHT
-	);
-
-	canvas[canvasid].fillTriangle(
-		x1,	y1,
-		x3 - 10 * normal_x_90, y3 - 10 * normal_y_90,
-		x4,	y4,
-		COLOUR_BLADE_DARK
-	);
-
-
-	x1 = display.center_x - 40 * normal_x_90;
-	y1 = display.center_y - 40 * normal_y_90;
-
-	x2 = display.center_x - 20 * normal_x_90;
-	y2 = display.center_y - 20 * normal_y_90;
-
-	x3 = display.center_x - 17 * normal_x_90;
-	y3 = display.center_y - 17 * normal_y_90;
-
-	x4 = display.center_x - 20 * normal_x_90;
-	y4 = display.center_y - 20 * normal_y_90;
-
-	canvas[canvasid].fillTriangle(
-		x1, y1,
-		x3 - 10 * -normal_x, y3 - 10 * -normal_y,
-		x4,	y4,
-		COLOUR_BLADE_DARK
-	);
-
-	canvas[canvasid].fillTriangle(
-		x1,	y1,
-		x3 - 10 * normal_x, y3 - 10 * normal_y,
-		x4,	y4,
-		COLOUR_BLADE_MID
-	);
-
-
-	x1 = display.center_x + 40 * normal_x_90;
-	y1 = display.center_y + 40 * normal_y_90;
-
-	x2 = display.center_x + 20 * normal_x_90;
-	y2 = display.center_y + 20 * normal_y_90;
-
-	x3 = display.center_x + 17 * normal_x_90;
-	y3 = display.center_y + 17 * normal_y_90;
-
-	x4 = display.center_x + 20 * normal_x_90;
-	y4 = display.center_y + 20 * normal_y_90;
-
-	canvas[canvasid].fillTriangle(
-		x1, y1,
-		x3 - 10 * -normal_x, y3 - 10 * -normal_y,
-		x4,	y4,
-		COLOUR_BLADE_DARK
-	);
-
-	canvas[canvasid].fillTriangle(
-		x1,	y1,
-		x3 - 10 * normal_x, y3 - 10 * normal_y,
-		x4,	y4,
-		COLOUR_BLADE_MID
-	);
-
-/*
 	canvas[canvasid].drawCircle(120, 140, 30, TFT_DARKGREY);
 
 	canvas[canvasid].setFreeFont(RobotoMono_Regular[12]);
@@ -518,8 +366,232 @@ void AppCompass::drawCompass(float heading)
 
 	canvas[canvasid].fillTriangle(needle_N_x, needle_N_y, needle_E_x, needle_E_y, needle_W_x, needle_W_y, TFT_RED);
 	canvas[canvasid].fillTriangle(needle_S_x, needle_S_y, needle_E_x, needle_E_y, needle_W_x, needle_W_y, TFT_LIGHTGREY);
-	canvas[canvasid].fillSmoothCircle(120, 140, 3, TFT_DARKGREY, TFT_LIGHTGREY);*/
+	canvas[canvasid].fillSmoothCircle(120, 140, 3, TFT_DARKGREY, TFT_LIGHTGREY);
 }
+
+/**
+ * 
+ */
+// void AppCompass::drawCompass(float heading)
+// {	
+
+// 	canvas[canvasid].fillSprite(TFT_BLACK);
+
+
+// 	/*
+// 	 Rotate a unit 1 vector pointing down (Cartesian coordinate) [x: 0, y: 1] around the origin at the given angle
+// 	 We can reduce the calcs in the rotation matrix due to the x component being 0 and y being 1
+	 
+// 	 xp = x(0) * cos(a) - y(1) * sin(a)
+// 	 yp = y(1) * cos(a) + x(0) * sin(a)
+	 
+// 	 This recuces down to
+	 
+// 	 xp = -y * sin(a)
+// 	 yp =  y * cos(a)
+	 
+// 	 The result is a normalized rotated vector that can then be multiplied by a radius
+// 	*/
+	
+// 	float heading_in_rad = heading * DEG_TO_RAD;
+	
+// 	float normal_x, normal_y, normal_x_90, normal_y_90;	
+	
+// 	// get the rotated normalised vector
+// 	normal_x = -sin(heading_in_rad);
+// 	normal_y =  cos(heading_in_rad);
+
+// 	// trick that rotates the normal 90 deg for E and W
+// 	normal_x_90 = -normal_y;
+// 	normal_y_90 =  normal_x;
+
+// 	uint8_t text_N_x = display.center_x - NESW_RADIUS * normal_x;
+// 	uint8_t text_N_y = display.center_y - NESW_RADIUS * normal_y;
+// 	uint8_t text_S_x = display.center_x + NESW_RADIUS * normal_x;
+// 	uint8_t text_S_y = display.center_y + NESW_RADIUS * normal_y;
+
+// 	uint8_t text_E_x = display.center_x - NESW_RADIUS * normal_x_90;
+// 	uint8_t text_E_y = display.center_y - NESW_RADIUS * normal_y_90;	
+// 	uint8_t text_W_x = display.center_x + NESW_RADIUS * normal_x_90;
+// 	uint8_t text_W_y = display.center_y + NESW_RADIUS * normal_y_90;
+
+
+
+
+// 	canvas[canvasid].fillSmoothCircle(display.center_x, display.center_y, 6, COLOUR_CIRCLE_2);
+
+// 	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 30, 15, COLOUR_CIRCLE_1);
+// 	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 30,  5, COLOUR_CIRCLE_2);
+
+// 	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 56,  1, COLOUR_DASH);
+// 	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 69,  1, COLOUR_DASH);
+
+// 	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 142,  8, COLOUR_CIRCLE_2);
+// 	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 150,  8, COLOUR_CIRCLE_1);
+
+// 	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 183,  8, COLOUR_CIRCLE_1);
+// 	drawCircle(&canvas[canvasid], display.center_x, display.center_y, 191,  8, COLOUR_CIRCLE_2);
+	
+// 	canvas[canvasid].setFreeFont(&Roboto_Mono_24);
+// 	canvas[canvasid].setTextColor(RGB(247, 246, 215));
+// 	canvas[canvasid].setTextDatum(CC_DATUM);
+// 	canvas[canvasid].drawString("N", text_N_x, text_N_y);
+// 	canvas[canvasid].drawString("E", text_E_x, text_E_y);
+// 	canvas[canvasid].drawString("S", text_S_x, text_S_y);
+// 	canvas[canvasid].drawString("W", text_W_x, text_W_y);
+
+// 	float i_r = 80;
+// 	float o_r = i_r + 6;
+// 	float count = 32;
+
+// 	for (float i = 0; i < 360; i += 360 / count)
+// 	{
+// 		float a = heading_in_rad + i * DEG_TO_RAD;
+// 		float sa = sin(a);
+// 		float ca = cos(a);
+// 		canvas[canvasid].drawLine(
+// 			display.center_x + -i_r * sa,
+// 			display.center_y + i_r * ca,
+// 			display.center_x + -o_r * sa,
+// 			display.center_y + o_r * ca, COLOUR_DASH
+// 		);	
+// 	}
+
+// 	int16_t x1 = display.center_x - 80 * normal_x;
+// 	int16_t y1 = display.center_y - 80 * normal_y;
+
+// 	int16_t x2 = display.center_x - 20 * normal_x;
+// 	int16_t y2 = display.center_y - 20 * normal_y;
+
+// 	int16_t x3 = display.center_x - 17 * normal_x;
+// 	int16_t y3 = display.center_y - 17 * normal_y;
+
+// 	int16_t x4 = display.center_x - 20 * normal_x;
+// 	int16_t y4 = display.center_y - 20 * normal_y;
+
+// 	canvas[canvasid].fillTriangle(
+// 		x1, y1,
+// 		x3 - 10 * -normal_x_90,	y3 - 10 * -normal_y_90,
+// 		x4,	y4,
+// 		COLOUR_BLADE_LIGHT
+// 	);
+
+// 	canvas[canvasid].fillTriangle(
+// 		x1,	y1,
+// 		x3 - 10 * normal_x_90, y3 - 10 * normal_y_90,
+// 		x4,	y4,
+// 		COLOUR_BLADE_DARK
+// 	);
+
+// 	x1 = display.center_x + 80 * normal_x;
+// 	y1 = display.center_y + 80 * normal_y;
+
+// 	x2 = display.center_x + 20 * normal_x;
+// 	y2 = display.center_y + 20 * normal_y;
+
+// 	x3 = display.center_x + 17 * normal_x;
+// 	y3 = display.center_y + 17 * normal_y;
+
+// 	x4 = display.center_x + 20 * normal_x;
+// 	y4 = display.center_y + 20 * normal_y;
+
+// 	canvas[canvasid].fillTriangle(
+// 		x1, y1,
+// 		x3 - 10 * -normal_x_90,	y3 - 10 * -normal_y_90,
+// 		x4,	y4,
+// 		COLOUR_BLADE_LIGHT
+// 	);
+
+// 	canvas[canvasid].fillTriangle(
+// 		x1,	y1,
+// 		x3 - 10 * normal_x_90, y3 - 10 * normal_y_90,
+// 		x4,	y4,
+// 		COLOUR_BLADE_DARK
+// 	);
+
+
+// 	x1 = display.center_x - 40 * normal_x_90;
+// 	y1 = display.center_y - 40 * normal_y_90;
+
+// 	x2 = display.center_x - 20 * normal_x_90;
+// 	y2 = display.center_y - 20 * normal_y_90;
+
+// 	x3 = display.center_x - 17 * normal_x_90;
+// 	y3 = display.center_y - 17 * normal_y_90;
+
+// 	x4 = display.center_x - 20 * normal_x_90;
+// 	y4 = display.center_y - 20 * normal_y_90;
+
+// 	canvas[canvasid].fillTriangle(
+// 		x1, y1,
+// 		x3 - 10 * -normal_x, y3 - 10 * -normal_y,
+// 		x4,	y4,
+// 		COLOUR_BLADE_DARK
+// 	);
+
+// 	canvas[canvasid].fillTriangle(
+// 		x1,	y1,
+// 		x3 - 10 * normal_x, y3 - 10 * normal_y,
+// 		x4,	y4,
+// 		COLOUR_BLADE_MID
+// 	);
+
+
+// 	x1 = display.center_x + 40 * normal_x_90;
+// 	y1 = display.center_y + 40 * normal_y_90;
+
+// 	x2 = display.center_x + 20 * normal_x_90;
+// 	y2 = display.center_y + 20 * normal_y_90;
+
+// 	x3 = display.center_x + 17 * normal_x_90;
+// 	y3 = display.center_y + 17 * normal_y_90;
+
+// 	x4 = display.center_x + 20 * normal_x_90;
+// 	y4 = display.center_y + 20 * normal_y_90;
+
+// 	canvas[canvasid].fillTriangle(
+// 		x1, y1,
+// 		x3 - 10 * -normal_x, y3 - 10 * -normal_y,
+// 		x4,	y4,
+// 		COLOUR_BLADE_DARK
+// 	);
+
+// 	canvas[canvasid].fillTriangle(
+// 		x1,	y1,
+// 		x3 - 10 * normal_x, y3 - 10 * normal_y,
+// 		x4,	y4,
+// 		COLOUR_BLADE_MID
+// 	);
+
+// /*
+// 	canvas[canvasid].drawCircle(120, 140, 30, TFT_DARKGREY);
+
+// 	canvas[canvasid].setFreeFont(RobotoMono_Regular[12]);
+// 	canvas[canvasid].setTextColor(TFT_RED);
+// 	canvas[canvasid].setTextDatum(CC_DATUM);
+// 	canvas[canvasid].drawString("N", text_N_x, text_N_y);
+// 	canvas[canvasid].setTextColor(TFT_WHITE);
+// 	canvas[canvasid].drawString("E", text_E_x, text_E_y);
+// 	canvas[canvasid].drawString("S", text_S_x, text_S_y);
+// 	canvas[canvasid].drawString("W", text_W_x, text_W_y);
+// 	canvas[canvasid].setTextColor(TFT_ORANGE);
+// 	uint8_t l = canvas[canvasid].drawString(String(heading, 0), display.center_x, 240);
+// 	canvas[canvasid].drawSmoothCircle(display.center_x + l * .5 + 7, 236, 3, TFT_ORANGE, TFT_BLACK);
+
+// 	uint8_t needle_N_x = display.center_x - NEEDLE_L * normal_x;
+// 	uint8_t needle_N_y = display.center_y - NEEDLE_L * normal_y;
+// 	uint8_t needle_S_x = display.center_x + NEEDLE_L * normal_x;
+// 	uint8_t needle_S_y = display.center_y + NEEDLE_L * normal_y;
+
+// 	uint8_t needle_E_x = display.center_x - NEEDLE_W * normal_x_90;
+// 	uint8_t needle_E_y = display.center_y - NEEDLE_W * normal_y_90;
+// 	uint8_t needle_W_x = display.center_x + NEEDLE_W * normal_x_90;
+// 	uint8_t needle_W_y = display.center_y + NEEDLE_W * normal_y_90;
+
+// 	canvas[canvasid].fillTriangle(needle_N_x, needle_N_y, needle_E_x, needle_E_y, needle_W_x, needle_W_y, TFT_RED);
+// 	canvas[canvasid].fillTriangle(needle_S_x, needle_S_y, needle_E_x, needle_E_y, needle_W_x, needle_W_y, TFT_LIGHTGREY);
+// 	canvas[canvasid].fillSmoothCircle(120, 140, 3, TFT_DARKGREY, TFT_LIGHTGREY);*/
+// }
 
 /**
  * 

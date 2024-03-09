@@ -18,7 +18,7 @@ class AppCompass : public tw_app
 		// needle values
 		#define NEEDLE_L 84 / 2 // Needle length is 84, we want radius which is 42
 		#define NEEDLE_W 12 / 2 // Needle width is 12, radius is then 6
-		#define NESW_RADIUS 110 // radius that N E S W rotate around	
+		#define NESW_RADIUS 60 // radius that N E S W rotate around	
 			
 		// running states
 		#define RUNNING_STATE_DRAW 1
@@ -34,7 +34,7 @@ class AppCompass : public tw_app
 		#define COLOUR_BLADE_MID  RGB(255, 236, 142)
 		#define COLOUR_BLADE_DARK RGB(181, 82, 14)
 
-		#define polling_rate_ms 25
+		#define polling_rate_ms 100
 		unsigned long last_poll;
 
 		float heading_target = 0;
